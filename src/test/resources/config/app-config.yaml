@@ -1,0 +1,19 @@
+# app配置文件
+base: # app的基本设置
+  url: http://127.0.0.1:4723/wd/hub
+  caps: # 具体app的caps覆盖全局的caps
+    noReset: true
+    unicodeKeyboard: true
+    dontStopAppOnReset: true
+
+app:
+  Android: # 这个就是platformName
+    wework: # Android平台下具体的App
+      appPackage: com.tencent.wework
+      appActivity: .launch.WwMainActivity
+  iOS:
+    UICatalog:
+      platformVersion: 14.4
+      deviceName: iPhone 11 Pro Max
+      automationName: XCUITest
+      bundleId: com.example.apple-samplecode.UICatalog
