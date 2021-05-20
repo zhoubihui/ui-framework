@@ -2,6 +2,8 @@ package com.pumpkin.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+
 /**
  * @className: AppConfigModelTest
  * @description: AppConfigModel单元测试
@@ -11,8 +13,6 @@ import org.junit.jupiter.api.Test;
  **/
 public class AppConfigModelTest {
     @Test
-    void createTest() {
-        AppConfigModel appConfigModel = new AppConfigModel();
-        System.out.println(appConfigModel);
+    void getPlatformDetail() throws IOException {
     }
 }

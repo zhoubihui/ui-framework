@@ -1,0 +1,9 @@
+setup:
+
+
+methods:
+  toSearch:
+    steps:
+      - element:
+          selector: ${to-search-button}
+          action: click

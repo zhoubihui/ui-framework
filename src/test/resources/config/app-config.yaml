@@ -9,11 +9,13 @@ base: # app的基本设置
 app:
   Android: # 这个就是platformName
     wework: # Android平台下具体的App
-      appPackage: com.tencent.wework
-      appActivity: .launch.WwMainActivity
+      caps:
+        appPackage: com.tencent.wework
+        appActivity: .launch.WwMainActivity
   iOS:
     UICatalog:
-      platformVersion: 14.4
-      deviceName: iPhone 11 Pro Max
-      automationName: XCUITest
-      bundleId: com.example.apple-samplecode.UICatalog
+      caps:
+        platformVersion: 14.4
+        deviceName: iPhone 11 Pro Max
+        automationName: XCUITest
+        bundleId: com.example.apple-samplecode.UICatalog

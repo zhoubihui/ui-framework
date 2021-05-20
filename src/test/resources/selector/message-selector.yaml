@@ -1,0 +1,8 @@
+config:
+  xpathToUiSelector: true # 是否启用xpath转UiSelector,只对Android有效
+
+selectors:
+  Android: # 兼容多平台，先试试看有没有效果
+    to-search-button:  # todo 这里独立成一个文件
+      - xpath
+      - com.tencent.wework:id/h8q
