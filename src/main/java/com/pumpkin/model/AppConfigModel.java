@@ -19,6 +19,9 @@ import java.util.Map;
 public class AppConfigModel {
     private final Logger logger = LoggerFactory.getLogger(AppConfigModel.class);
 
-    private Map<String, Map<String, Object>> base;
+    //存储基本配置信息
+    private Map<String, Object> base;
+
+    //存储app相关配置信息
     private Map<String, Map<String, Object>> app;
 }
