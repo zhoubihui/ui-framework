@@ -1,4 +1,4 @@
-package com.pumpkin.model;
+package com.pumpkin.model.selector;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

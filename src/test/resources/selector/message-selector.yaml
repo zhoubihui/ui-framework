@@ -1,8 +1,6 @@
-config:
-  xpathToUiSelector: true # 是否启用xpath转UiSelector,只对Android有效
-
 selectors:
   Android: # 兼容多平台，先试试看有没有效果
-    to-search-button:  # todo 这里独立成一个文件
+    to-search-button:
       - xpath
       - com.tencent.wework:id/h8q
+      # 如果是利用findElements查找，这里列表的第3个元素就是指定取第几个元素

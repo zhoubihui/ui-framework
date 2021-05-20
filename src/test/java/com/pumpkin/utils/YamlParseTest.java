@@ -1,6 +1,6 @@
 package com.pumpkin.utils;
 
-import com.pumpkin.model.AppConfigModel;
+import com.pumpkin.model.config.AppConfigModel;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
