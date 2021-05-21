@@ -1,5 +1,10 @@
 selectors:
   Android:
-    search-button:
+    search:
       - xpath
       - //*[@text='搜索']
+
+    search-result:
+      - xpath
+      - //android.widget.ListView//android.widget.TextView
+      # 怎么确定用findElements还是findElement，之前的想法是不填index就是查全部，貌似不行

@@ -5,8 +5,14 @@ methods:
       - replace
     steps:
       - element:
-          selector: ${search-button}
+          selector: ${search}
           action: input
           data:
             - ${keyword}
             - ${replace}
+
+  getTexts:
+    steps:
+      - element:
+          selector: ${search-result}
+          action: get

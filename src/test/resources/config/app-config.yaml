@@ -1,7 +1,7 @@
 # app配置文件
 base: # app的基本设置
-  url: http://127.0.0.1:4723/wd/hub
   config:
+    url: http://127.0.0.1:4723/wd/hub
     enabledTransformXpath: true # 开启后，Android下的xpath查找，如果是支持解析的语法，就转成UiSelector的语法查询
   caps: # 具体app的caps覆盖全局的caps
     noReset: true

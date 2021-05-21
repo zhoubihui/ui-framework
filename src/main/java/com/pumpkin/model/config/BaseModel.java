@@ -15,7 +15,6 @@ import org.apache.commons.collections4.map.CaseInsensitiveMap;
 @Data
 @Accessors(chain = true)
 public class BaseModel implements Model {
-    private String url;
     private CaseInsensitiveMap<String, Object> config;
     private CaseInsensitiveMap<String, Object> caps;
 
