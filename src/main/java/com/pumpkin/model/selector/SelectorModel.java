@@ -1,5 +1,6 @@
 package com.pumpkin.model.selector;
 
+import com.pumpkin.model.Model;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
@@ -17,7 +18,7 @@ import java.util.Objects;
  **/
 @Data
 @Accessors(chain = true)
-public class SelectorModel {
+public class SelectorModel implements Model {
     private CaseInsensitiveMap<String, Map<String, List<String>>> selectors;
 
     /**

@@ -1,5 +1,6 @@
 package com.pumpkin.model.config;
 
+import com.pumpkin.model.Model;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
@@ -13,7 +14,7 @@ import org.apache.commons.collections4.map.CaseInsensitiveMap;
  **/
 @Data
 @Accessors(chain = true)
-public class BaseModel {
+public class BaseModel implements Model {
     private String url;
     private CaseInsensitiveMap<String, Object> config;
     private CaseInsensitiveMap<String, Object> caps;

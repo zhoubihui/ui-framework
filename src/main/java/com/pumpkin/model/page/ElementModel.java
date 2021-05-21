@@ -18,14 +18,14 @@ public class ElementModel implements Step {
     private String selector;
     /**
      * click: 表示元素的click操作
-     * send: 表示元素的sendKeys操作，这个需要参数配合
+     * input: 表示元素的sendKeys操作，这个需要参数配合
      * get: 表示元素的getAttribute操作，需要参数配合
      */
     private String action;
     /**
      * 第一个元素: action是send、get时需要输入的参数
-     * 第二个元素: action是send时，本次输入是否先清空之前的输入
+     * 第二个元素: action是input时，本次输入是否先清空之前的输入
      */
-    private List<String> params;
+    private List<String> data;
 
 }

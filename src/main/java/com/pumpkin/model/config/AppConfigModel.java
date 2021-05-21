@@ -1,5 +1,6 @@
 package com.pumpkin.model.config;
 
+import com.pumpkin.model.Model;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
@@ -16,7 +17,7 @@ import java.util.Objects;
  **/
 @Data
 @Accessors(chain = true)
-public class AppConfigModel {
+public class AppConfigModel implements Model {
     //存储基本配置信息
     private BaseModel base;
 

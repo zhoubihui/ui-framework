@@ -1,9 +1,9 @@
 package com.pumpkin.model.page;
 
+import com.pumpkin.model.Model;
+import lombok.Data;
+import lombok.experimental.Accessors;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @className: PageModel
@@ -12,15 +12,17 @@ import java.util.Map;
  * @date: 2021/5/21 7:10 上午
  * @version: 1.0
  **/
-public class PageModel {
-    private CaseInsensitiveMap<String, Map<String, List<Step>>> methods;
+@Data
+@Accessors(chain = true)
+public class PageModel implements Model {
+    private CaseInsensitiveMap<String, MethodModel> methods;
 
     /**
      * 获取指定方法名的数据
      * @param name
      * @return
      */
-    public Map<String, List<Step>> getMethod(String name) {
+    public MethodModel getMethod(String name) {
         return methods.get(name);
     }
 }

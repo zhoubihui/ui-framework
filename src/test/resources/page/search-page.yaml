@@ -1,0 +1,12 @@
+methods:
+  search:
+    params: # 表示这个po方法需要的参数
+      - keyword
+      - replace
+    steps:
+      - element:
+          selector: ${search-button}
+          action: input
+          data:
+            - ${keyword}
+            - ${replace}

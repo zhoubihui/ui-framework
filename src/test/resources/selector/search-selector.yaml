@@ -1,5 +1,5 @@
 selectors:
   Android:
-    search_button:
-      - id
-      - com.tencent.wework:id/h8q
+    search-button:
+      - xpath
+      - //*[@text='搜索']
