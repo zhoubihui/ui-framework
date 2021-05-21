@@ -1,5 +1,6 @@
 package com.pumpkin.model.page;
 
+import com.pumpkin.model.Model;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -14,7 +15,7 @@ import java.util.List;
  **/
 @Data
 @Accessors(chain = true)
-public class ElementModel implements Step {
+public class ElementModel implements Model {
     private String selector;
     /**
      * click: 表示元素的click操作
