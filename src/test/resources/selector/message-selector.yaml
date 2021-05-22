@@ -1,6 +1,6 @@
 selectors:
-  Android: # 兼容多平台，先试试看有没有效果
-    to-search:
-      - xpath
-      - com.tencent.wework:id/h8q
-      # 如果是利用findElements查找，这里列表的第3个元素就是指定取第几个元素
+  to-search:
+    Android:
+      strategy: xpath
+      selector: com.tencent.wework:id/h8q
+      multiple: false

@@ -1,6 +1,6 @@
 # PO中的方法
 methods:
-  toSearch:
+  to-search:
     steps:
       - element:
           selector: ${to-search}

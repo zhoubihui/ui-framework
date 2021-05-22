@@ -1,10 +1,13 @@
 selectors:
-  Android:
-    search:
-      - xpath
-      - //*[@text='搜索']
+  search:
+    Android: # 表明是Android平台下的定位方式
+      strategy: xpath
+      selector: //*[@text='搜索']
+      multiple: false
 
-    search-result:
-      - xpath
-      - //android.widget.ListView//android.widget.TextView
-      # 怎么确定用findElements还是findElement，之前的想法是不填index就是查全部，貌似不行
+  search-result:
+    Android:
+      strategy: xpath
+      selector: //android.widget.ListView//android.widget.TextView
+      multiple: true
+      # index: 1 # 只有multiple=true时，index才使用，不写index，则认为是读取全部

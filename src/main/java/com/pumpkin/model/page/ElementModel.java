@@ -16,6 +16,9 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class ElementModel implements Model {
+    /**
+     * 读取进来的是占位符，需要做替换
+     */
     private String selector;
     /**
      * click: 表示元素的click操作

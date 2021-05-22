@@ -1,3 +1,8 @@
-# search-case.yaml中使用的参数化文件
-search-data:
-  -
+data:
+  search: # 方法名，表明这是哪个方法的参数
+    keyword:
+      - 周永震
+      - 助理部
+    expected:
+      - 周永震
+      - 助理部
