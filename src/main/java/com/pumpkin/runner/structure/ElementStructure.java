@@ -18,7 +18,6 @@ import java.util.List;
 @Data
 @Builder
 public class ElementStructure {
-    private List<String> params;
     /**
      * 存储各个平台的定位方式
      */
@@ -26,10 +25,9 @@ public class ElementStructure {
     private String action;
 
     /**
-     * sendKeys中使用
+     * PO方法的action操作需要的参数
      */
-    private String keyword;
-    private String replace;
+    private List<String> data;
 
     /**
      * 元素操作枚举类

@@ -24,7 +24,7 @@ public class PageObjectStructure {
      */
     private String name;
     /**
-     * 方法的参数
+     * 方法的参数,需要替换的是这个,为空则说明该PO方法是无参方法
      */
     private List<String> params;
     /**

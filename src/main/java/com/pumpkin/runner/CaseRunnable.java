@@ -19,11 +19,11 @@ public class CaseRunnable {
     //case文件名
     private String caseFileName;
     /**
-     * @BeforeEach方法
+     * @BeforeAll方法
      */
     //全部的用例,包含全部的@BeforeEach和@AfterEach
     private List<CaseStructure> cases;
     /**
-     * @AfterEach方法
+     * @AfterAll方法
      */
 }

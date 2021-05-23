@@ -36,7 +36,7 @@ public class CaseParse {
     private final String PARAM_REGEX = "\\((.+?)\\)";
     private final String PARAM_SPLIT_REGEX = "\\$\\{(.+?)\\}";
 
-    private String caseFileName = null;
+    private String caseFileName;
 
     /**
      * 解析CaseModel，转成CaseRunnable格式
@@ -44,8 +44,6 @@ public class CaseParse {
      * @return
      */
     public CaseRunnable parseCase(CaseModel caseModel) {
-        this.caseFileName = caseFileName;
-
         /**
          * 1、遍历caseModel.cases
          */
@@ -82,6 +80,11 @@ public class CaseParse {
         //3、处理参数,从xxx-data中读取参数来生成完整的测试用例
         //3-1、处理用例的参数
         List<CaseMethod> caseMethods = replaceParam(findCaseDependFile(DATA), cases);
+        /**
+         * 1、xxx-case的方法params在xxx-data中获取，steps和assert中引用的参数都需要在params中定义，
+         *      反之params中定义的参数在steps，asserts中不一定会使用
+         * 2、xxx-page的po方法params在xxx-case.steps中调用该po方法时传入，params定义的参数都需要从case中传入，
+         */
 
         return CaseStructure.builder().cases(caseMethods).build();
     }
@@ -126,7 +129,7 @@ public class CaseParse {
         PageModel pageModel = Model.getModel(filePath, PageModel.class);
         MethodModel methodModel = pageModel.getMethod(methodName);
         //1、切割参数
-        List<String> params = splitMethodParam(step);
+        List<String> params = methodModel.getParams();
         //2、方法体转ElementStructure
         List<ElementStructure> elementStructures = methodModel.getSteps().stream().map(this::transformPOStep).
                 collect(Collectors.toList());
@@ -146,12 +149,12 @@ public class CaseParse {
         String action = poStep.getAction();
         //3、处理data
         List<String> data = poStep.getData();
-        List<String> params = null;
+        List<String> dataTemp = null;
         if (Objects.nonNull(data))
-            params = data.stream().map(this::splitParam).collect(Collectors.toList());
+            dataTemp = data.stream().map(this::splitParam).collect(Collectors.toList());
         else
-            params = Collections.emptyList();
-        return ElementStructure.builder().selectors(elementSelectorMap).action(action).params(params).build();
+            dataTemp = Collections.emptyList();
+        return ElementStructure.builder().selectors(elementSelectorMap).action(action).data(dataTemp).build();
     }
 
     /**
