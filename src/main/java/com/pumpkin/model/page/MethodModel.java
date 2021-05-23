@@ -20,5 +20,5 @@ public class MethodModel implements Model {
     //PO方法的形参
     private List<String> params;
     //PO方法的方法体
-    private List<Map<String, ElementModel>> steps;
+    private List<ElementModel> steps;
 }

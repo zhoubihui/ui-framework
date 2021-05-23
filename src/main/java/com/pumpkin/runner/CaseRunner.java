@@ -8,4 +8,7 @@ package com.pumpkin.runner;
  * @version: 1.0
  **/
 public class CaseRunner {
+    public void runCase(CaseRunnable caseRunnable) {
+
+    }
 }

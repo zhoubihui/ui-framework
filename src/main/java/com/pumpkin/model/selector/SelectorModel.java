@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @className: SelectorModel
@@ -18,18 +17,14 @@ import java.util.Objects;
 @Data
 @Accessors(chain = true)
 public class SelectorModel implements Model {
-    private CaseInsensitiveMap<String, Map<String, ElementSelectorModel>> selectors;
+    private CaseInsensitiveMap<String, CaseInsensitiveMap<String, ElementSelectorModel>> selectors;
 
     /**
      * 获取指定平台，指定元素名称的定位符相关的
-     * @param platform
      * @param name
      * @return
      */
-    public ElementSelectorModel getSelector(String platform, String name) {
-        Map<String, ElementSelectorModel> map = selectors.get(name);
-        if (Objects.isNull(map))
-            return null;
-        return map.get(platform);
+    public Map<String, ElementSelectorModel> getSelector(String name) {
+        return selectors.get(name);
     }
 }

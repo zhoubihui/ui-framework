@@ -3,14 +3,12 @@ methods:
     params: # 表示这个po方法需要的参数
       - keyword
     steps:
-      - element:
-          selector: ${search}
-          action: input
-          data:
-            - ${keyword}
-
+      - selector: ${search-selector.search}
+        action: input
+        data:
+          - ${keyword}
+          - ${replace}
   get-texts:
     steps:
-      - element:
-          selector: ${search-result}
-          action: get
+      - selector: ${search-selector.search-result}
+        action: get

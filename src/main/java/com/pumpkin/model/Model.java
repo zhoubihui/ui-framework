@@ -1,5 +1,12 @@
 package com.pumpkin.model;
 
+import com.pumpkin.core.GlobalConfigParse;
+import com.pumpkin.utils.ExceptionUtils;
+import com.pumpkin.utils.FileUtils;
+import com.pumpkin.utils.YamlParse;
+
+import java.io.IOException;
+
 /**
  * @className: Model
  * @description: yaml文件对应的模型父接口
@@ -8,4 +15,21 @@ package com.pumpkin.model;
  * @version: 1.0
  **/
 public interface Model {
+    /**
+     * 根据文件路径获取对应Model子类
+     * @param fileName 传入的格式search-case
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    static <T> T getModel(String fileName, Class<T> clazz) {
+        try {
+            String baseDirectory = GlobalConfigParse.getGlobalConfig().getBase().getBaseDirectory(fileName);
+            return YamlParse.readValue(FileUtils.getFilePathFromDirectory(baseDirectory, fileName), clazz);
+        } catch (IOException e) {
+            throw ExceptionUtils.throwAsUncheckedException(e);
+        }
+    }
+
+
 }

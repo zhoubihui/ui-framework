@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
+import java.util.List;
+
 /**
  * @className: CaseModel
  * @description: xxx-case.yaml的描述
@@ -15,5 +17,5 @@ import org.apache.commons.collections4.map.CaseInsensitiveMap;
 @Data
 @Accessors(chain = true)
 public class CaseModel implements Model {
-    private CaseInsensitiveMap<String, CaseMethodModel> cases;
+    private List<CaseInsensitiveMap<String, CaseMethodModel>> cases;
 }

@@ -1,10 +1,13 @@
 cases:
-  search:
-    steps:
-      - ${message-page.to-search}
-      - ${search(${keyword})}
-    asserts:
-      - type: contains # 类型需要有个对照enum
-        expected: ${expected}
-        actual: ${get-texts}
-      # - type: xxx
+  - search:
+      params:
+        - keyword
+        - expected
+      steps:
+        - ${message-page.to-search}
+        - ${search-page.search(${keyword})}
+      asserts:
+        - type: contains # 类型需要有个对照enum
+          expected: ${expected}
+          actual: ${search-page.get-texts}
+        # - type: xxx

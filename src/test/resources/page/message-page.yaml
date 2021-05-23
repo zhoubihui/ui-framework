@@ -2,7 +2,6 @@
 methods:
   to-search:
     steps:
-      - element:
-          selector: ${to-search}
-          action: click
+      - selector: ${message-selector.to-search}
+        action: click
     # next: search-page # 是否有必要,下一个页面
