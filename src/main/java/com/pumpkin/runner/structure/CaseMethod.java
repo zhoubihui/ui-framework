@@ -26,7 +26,7 @@ public class CaseMethod {
     /**
      * 对应xxx-case.yaml文件中的case下的steps关键字
      */
-    private List<PageObjectStructure> steps;
+    private List<PageObjectStructure> caseSteps;
     /**
      * 对应xxx-case.yaml文件中的case下的assert关键字
      */

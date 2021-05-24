@@ -104,7 +104,7 @@ public class CaseParse {
         //全部的断言
         List<Assert> assertList = asserts.stream().map(this::transformCaseAssert).collect(Collectors.toList());
 
-        return CaseMethod.builder().params(params).steps(pageObjectStructures).asserts(assertList).build();
+        return CaseMethod.builder().params(params).caseSteps(pageObjectStructures).asserts(assertList).build();
     }
 
     /**
@@ -134,7 +134,7 @@ public class CaseParse {
         List<ElementStructure> elementStructures = methodModel.getSteps().stream().map(this::transformPOStep).
                 collect(Collectors.toList());
         return PageObjectStructure.builder().pageFileName(filePath).name(methodName).params(params).
-                steps(elementStructures).build();
+                poSteps(elementStructures).build();
     }
 
     /**
@@ -208,7 +208,7 @@ public class CaseParse {
         params.forEach(
                 p -> {
                     List<Object> paramData = methodData.get(p);
-                    List<PageObjectStructure> steps = caseMethod.getSteps();
+                    List<PageObjectStructure> steps = caseMethod.getCaseSteps();
 
                 }
         );

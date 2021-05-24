@@ -30,5 +30,5 @@ public class PageObjectStructure {
     /**
      * 方法的步骤
      */
-    private List<ElementStructure> steps;
+    private List<ElementStructure> poSteps;
 }
