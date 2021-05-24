@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -17,24 +18,17 @@ import java.util.List;
  **/
 @Data
 @Builder
-public class ElementStructure {
+public class ElementStructure implements Serializable {
     /**
      * 存储各个平台的定位方式
      */
     private CaseInsensitiveMap<String, ElementSelector> selectors;
     private String action;
 
-    ///**
-    // * PO方法的action操作需要的参数
-    // */
-    //private List<String> data;
-    //
-    ///**
-    // * 总数和data对应，两者一一对应，这里存储真实传入的变量值
-    // */
-    //private List<Object> trueData;
-
-    private CaseInsensitiveMap<String, Object> elementTrueData;
+    /**
+     * PO方法的action操作需要的参数
+     */
+    private List<String> data;
 
     /**
      * 元素操作枚举类

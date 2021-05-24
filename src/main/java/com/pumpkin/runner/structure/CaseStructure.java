@@ -3,6 +3,7 @@ package com.pumpkin.runner.structure;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -14,12 +15,16 @@ import java.util.List;
  **/
 @Data
 @Builder
-public class CaseStructure {
+public class CaseStructure implements Serializable {
     /**
      * @BeforeEach方法
      */
-    //全部的用例
+
+    /**
+     * case方法，这里的个数和参数的组数相同
+     */
     private List<CaseMethod> cases;
+
     /**
      * @AfterEach方法
      */

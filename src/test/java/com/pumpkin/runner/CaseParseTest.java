@@ -21,18 +21,10 @@ class CaseParseTest {
     }
 
     @Test
-    void transformCaseStep() {
-        String step = "${message-page.to-search}";
-        CaseParse caseParse = CaseParse.builder().build();
-        PageObjectStructure pageObjectStructure = caseParse.transformCaseStep(step);
-        System.out.println(pageObjectStructure);
-    }
-
-    @Test
     void parseCase() {
         CaseModel caseModel = Model.getModel("search-case", CaseModel.class);
         CaseParse caseParse = CaseParse.builder().caseFileName("search-case").build();
-        CaseRunnable caseRunnable = caseParse.parseCase(caseModel);
+        CaseRunnable caseRunnable = caseParse.parseCase("search-case", caseModel);
         System.out.println(caseRunnable);
     }
 }

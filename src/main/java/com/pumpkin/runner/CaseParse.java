@@ -1,5 +1,6 @@
 package com.pumpkin.runner;
 
+import com.pumpkin.core.CallPOMethodException;
 import com.pumpkin.core.NotMatchParameterException;
 import com.pumpkin.model.Model;
 import com.pumpkin.model.cases.CaseAssertModel;
@@ -17,9 +18,12 @@ import com.pumpkin.utils.StringUtils;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
+import org.apache.commons.lang3.SerializationUtils;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.pumpkin.runner.CaseParse.CaseDependFile.DATA;
 
@@ -44,11 +48,11 @@ public class CaseParse {
      * @param caseModel
      * @return
      */
-    public CaseRunnable parseCase(CaseModel caseModel) {
+    public CaseRunnable parseCase(String caseFileName, CaseModel caseModel) {
         /**
          * 1、遍历caseModel.cases
          */
-        List<CaseStructure> caseStructures = caseModel.getCases().stream().map(this::transformCase).
+        List<CaseStructure> caseStructures = caseModel.getCases().stream().map(c -> transformCase(caseFileName, c)).
                 collect(Collectors.toList());
 
         return CaseRunnable.builder().caseFileName(caseFileName).cases(caseStructures).build();
@@ -59,7 +63,7 @@ public class CaseParse {
      * 注意: case是关键字，所以这里变量改名为testCase
      * @param testCase
      */
-    public CaseStructure transformCase(Map<String, CaseMethodModel> testCase) {
+    public CaseStructure transformCase(String caseFileName, Map<String, CaseMethodModel> testCase) {
         /**
          * 注意：
          * 1、key是方法名
@@ -75,12 +79,12 @@ public class CaseParse {
             ExceptionUtils.throwAsUncheckedException(
                     new NotMatchParameterException(entry.getKey(), caseMethodModel.getParams().toString())
             );
-        CaseMethod cases = transformCaseMethod(entry.getValue());
-        cases.setName(methodName); //存储case方法名
+        CaseMethod caseMethod = transformCaseMethod(caseFileName, methodName, entry.getValue());
+        caseMethod.setName(methodName); //存储case方法名
 
         //3、处理参数,从xxx-data中读取参数来生成完整的测试用例
         //3-1、处理用例的参数
-        List<CaseMethod> caseMethods = replaceParam(findCaseDependFile(DATA), cases);
+        List<CaseMethod> caseMethods = replaceCaseParam(caseFileName, caseMethod);
         /**
          * 1、xxx-case的方法params在xxx-data中获取，steps和assert中引用的参数都需要在params中定义，
          *      反之params中定义的参数在steps，asserts中不一定会使用
@@ -94,21 +98,27 @@ public class CaseParse {
      * 解析CaseMethodModel
      * @param caseMethodModel
      */
-    public CaseMethod transformCaseMethod(CaseMethodModel caseMethodModel) {
+    public CaseMethod transformCaseMethod(String caseFileName, String caseName, CaseMethodModel caseMethodModel) {
         List<String> params = caseMethodModel.getParams();
-        List<String> steps = caseMethodModel.getSteps();
+        List<String> caseSteps = caseMethodModel.getSteps();
         List<CaseAssertModel> asserts = caseMethodModel.getAsserts();
+        //获取steps中全部引用的参数,在后续参数替换时需要使用
+        Set<String> paramsSet = caseSteps.stream().flatMap(caseStep -> splitMethodParam(caseStep).stream()).collect(Collectors.toSet());
+
         //每个steps就是一个Case
-        List<PageObjectStructure> pageObjectStructures = steps.stream().map(this::transformCaseStep).
+        List<PageObjectStructure> pageObjectStructures = caseSteps.stream().
+                map(caseStep -> transformCaseStep(caseFileName, caseName, caseStep)).
                 collect(Collectors.toList());
 
         //全部的断言
         List<Assert> assertList = asserts.stream().map(this::transformCaseAssert).collect(Collectors.toList());
 
-        //全部的参数
-        new CaseInsensitiveMap<>()
+        //将case的参数（即params部分）组装到Map中
+        CaseInsensitiveMap<String, Object> trueData = new CaseInsensitiveMap<>();
+        params.forEach(p -> trueData.put(p, PRESENT));
 
-        return CaseMethod.builder().params(params).caseSteps(pageObjectStructures).asserts(assertList).build();
+        return CaseMethod.builder().caseParams(paramsSet).trueData(trueData).caseSteps(pageObjectStructures).
+                asserts(assertList).build();
     }
 
     /**
@@ -119,25 +129,28 @@ public class CaseParse {
      * ${search(${keyword}, ${replace})}
      * @param step
      */
-    public PageObjectStructure transformCaseStep(String step) {
+    public PageObjectStructure transformCaseStep(String caseFileName, String caseName, String step) {
         /**
          * 1、替换step中调用的PO方法
          */
         List<String> poMethods = splitFileAndMethod(step);
-        String filePath = poMethods.get(0);
-        String methodName = poMethods.get(1);
+        String poFileName = poMethods.get(0);
+        String poMethod = poMethods.get(1);
+        List<String> caseToPOData = splitMethodParam(step); //case传给po的参数
 
         /**
          * 先从缓存PageCache中找，找不到再读取文件
          */
-        PageModel pageModel = Model.getModel(filePath, PageModel.class);
-        MethodModel methodModel = pageModel.getMethod(methodName);
-        //1、切割参数
-        List<String> params = methodModel.getParams();
+        PageModel pageModel = Model.getModel(poFileName, PageModel.class);
+        MethodModel methodModel = pageModel.getMethod(poMethod);
+        //1、判断case传递的参数个数是否和PO定义的参数个数相同
+        List<String> params = methodModel.getParams(); //po中定义的参数
+        if (caseToPOData.size() != params.size())
+            throw ExceptionUtils.throwAsUncheckedException(new CallPOMethodException(caseFileName, caseName, poFileName, poMethod));
         //2、方法体转ElementStructure
         List<ElementStructure> elementStructures = methodModel.getSteps().stream().map(this::transformPOStep).
                 collect(Collectors.toList());
-        return PageObjectStructure.builder().pageFileName(filePath).name(methodName).params(params).
+        return PageObjectStructure.builder().pageFileName(poFileName).name(poMethod).params(params).
                 poSteps(elementStructures).build();
     }
 
@@ -195,27 +208,43 @@ public class CaseParse {
     }
 
     /**
-     * 将参数替换case、page中的模板参数，有多组参数则生成多个case返回
+     * 将参数替换case、中的模板参数，有多组参数则生成多个CaseMethod返回
      * @return
      */
-    private List<CaseMethod> replaceParam(String dataFileName, CaseMethod caseMethod) {
+    private List<CaseMethod> replaceCaseParam(String caseFileName, CaseMethod caseMethod) {
+        String dataFileName = findCaseDependFile(caseFileName, DATA);
         List<CaseMethod> caseMethods = new ArrayList<>();
         /**
          * 先从缓存DataCache中找，找不到再读取文件
          */
         DataModel dataModel = Model.getModel(dataFileName, DataModel.class);
         Map<String, List<Object>> methodData = dataModel.getMethodData(caseMethod.getName());
-        List<String> params = caseMethod.getParams();
 
-        //避免参数长度不等的问题，根据case中需要的参数选取定义参数值长度最短的
-        int len = params.stream().map(p -> methodData.get(p).size()).sorted().findFirst().orElse(0);
-        params.forEach(
-                p -> {
-                    List<Object> paramData = methodData.get(p);
-                    List<PageObjectStructure> steps = caseMethod.getCaseSteps();
+        Set<String> caseParams = caseMethod.getCaseParams();
+        //case.steps传递给PO的多个参数长度需要相同，长度不同则取最短的,对断言的参数无要求
+        /**
+         * 1、获取case中需要的参数（排除断言的参数），xxx-data.yaml中定义的最短长度，用来最后生成List<CaseMethod>
+         */
+        int dataMinLength = caseParams.stream().map(p -> methodData.get(p).size()).sorted().findFirst().orElse(0);
+        /**
+         * 2、如果case中需要多个参数，且这多个参数在xxx-data.yaml中定义的实际值长度不同，为了保证生成的case参数正确，只会使用最短长度，举例：
+         *  case: 需要参数keyword,replace
+         *  data: 定义keyword=[123,456,789],replace=[true,false]，那么最后只会取前两组的参数值
+         */
+        Stream.iterate(0, index -> index + 1).limit(dataMinLength).forEach(
+                index -> {
+                    CaseMethod temp = SerializationUtils.clone(caseMethod);
+                    CaseInsensitiveMap<String, Object> trueData = temp.getTrueData();
+                    trueData.keySet().stream().forEach(
+                         key -> {
+                             Object obj = methodData.get(key).get(index);
 
+                         }
+                    );
                 }
         );
+
+
         return caseMethods;
     }
 
@@ -279,20 +308,10 @@ public class CaseParse {
     }
 
     /**
-     * 根据传入的key初始化一个map，key是参数名，value是参数值
-     * 注意：此方法中的value是空
-     * @param params
-     * @return
-     */
-    private CaseInsensitiveMap<String, Object> initTrueData(List<String> params) {
-
-    }
-
-    /**
      * 转换case依赖的xxx-data、xxx-page、xxx-selector的文件名
      * @return
      */
-    private String findCaseDependFile(CaseDependFile caseDependFile) {
+    private String findCaseDependFile(String caseFileName, CaseDependFile caseDependFile) {
         int endIndex = caseFileName.indexOf("-");
         String prefix = caseFileName.substring(0, endIndex + 1);
         return prefix + caseDependFile.getSuffix();

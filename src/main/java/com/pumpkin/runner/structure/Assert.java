@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hamcrest.Matchers;
 
+import java.io.Serializable;
+
 /**
  * @className: Assert
  * @description: 断言的结构
@@ -13,7 +15,7 @@ import org.hamcrest.Matchers;
  **/
 @Data
 @Accessors(chain = true)
-public class Assert {
+public class Assert implements Serializable {
     private Matchers matcher;
     private Object expected;
     private Object actual;

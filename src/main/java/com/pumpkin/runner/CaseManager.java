@@ -38,7 +38,7 @@ public class CaseManager {
          * 2、通过commons-io包
          */
         CaseModel caseModel = Model.getModel(caseFileName, CaseModel.class);
-        CaseRunnable caseRunnable = caseParse.parseCase(caseModel);
+        CaseRunnable caseRunnable = caseParse.parseCase(caseFileName, caseModel);
         /**
          * 1、放入缓存
          * 2、CaseRunner执行CaseRunnable

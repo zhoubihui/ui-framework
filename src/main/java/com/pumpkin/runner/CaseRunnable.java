@@ -4,6 +4,7 @@ import com.pumpkin.runner.structure.CaseStructure;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -15,14 +16,26 @@ import java.util.List;
  **/
 @Data
 @Builder
-public class CaseRunnable {
+public class CaseRunnable implements Serializable {
     //case文件名
     private String caseFileName;
     /**
      * @BeforeAll方法
      */
-    //全部的用例,包含全部的@BeforeEach和@AfterEach
+
+    /**
+     * @BeforeEach方法
+     */
+
+    /**
+     * xxx-case.yaml中的cases字段，每个CaseStructure对象代表一个case，即一个测试方法
+     */
     private List<CaseStructure> cases;
+
+    /**
+     * @AfterEach方法
+     */
+
     /**
      * @AfterAll方法
      */

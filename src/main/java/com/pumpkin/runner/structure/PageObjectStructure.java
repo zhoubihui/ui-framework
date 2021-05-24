@@ -2,8 +2,8 @@ package com.pumpkin.runner.structure;
 
 import lombok.Builder;
 import lombok.Data;
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -15,7 +15,7 @@ import java.util.List;
  **/
 @Data
 @Builder
-public class PageObjectStructure {
+public class PageObjectStructure implements Serializable {
     /**
      * PO方法所属的文件名
      */
@@ -24,19 +24,13 @@ public class PageObjectStructure {
      * PO方法的名称
      */
     private String name;
-    ///**
-    // * 方法的参数,需要替换的是这个,为空则说明该PO方法是无参方法
-    // */
-    //private List<String> params;
+    /**
+     * 方法的形参,为空则说明该PO方法是无参方法,并且用List的顺序来表示方法的顺序
+     * 注意：这里的顺序和个数应该和PO方法中定义的params部分一致
+     */
+    private List<String> params;
     /**
      * 方法的步骤
      */
     private List<ElementStructure> poSteps;
-
-    ///**
-    // * 总数和params对应，两者一一对应，这里存储真实传入的变量值
-    // */
-    //private List<Object> trueData;
-
-    private CaseInsensitiveMap<String, Object> poTrueData;
 }

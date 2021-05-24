@@ -4,7 +4,9 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @className: CaseMethod
@@ -15,15 +17,11 @@ import java.util.List;
  **/
 @Data
 @Builder
-public class CaseMethod {
+public class CaseMethod implements Serializable {
     /**
      * case的方法名
      */
     private String name;
-    ///**
-    // * case需要传入的参数
-    // */
-    //private List<String> params;
     /**
      * 对应xxx-case.yaml文件中的case下的steps关键字
      */
@@ -33,10 +31,13 @@ public class CaseMethod {
      */
     private List<Assert> asserts;
 
-    ///**
-    // * 总数和params对应，两者一一对应，这里存储真实传入的变量值
-    // */
-    //private List<Object> trueData;
+    /**
+     * case中使用的参数，目的是和断言参数区分开
+     */
+    private Set<String> caseParams;
 
-    private CaseInsensitiveMap<String, Object> caseTrueData;
+    /**
+     * 存储当前测试方法需要的参数，和参数对应的值
+     */
+    private CaseInsensitiveMap<String, Object> trueData;
 }
