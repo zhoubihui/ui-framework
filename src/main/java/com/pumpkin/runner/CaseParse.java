@@ -35,6 +35,7 @@ import static com.pumpkin.runner.CaseParse.CaseDependFile.DATA;
 public class CaseParse {
     private final String PARAM_REGEX = "\\((.+?)\\)";
     private final String PARAM_SPLIT_REGEX = "\\$\\{(.+?)\\}";
+    private final static Object PRESENT = new Object();
 
     private String caseFileName;
 
@@ -103,6 +104,9 @@ public class CaseParse {
 
         //全部的断言
         List<Assert> assertList = asserts.stream().map(this::transformCaseAssert).collect(Collectors.toList());
+
+        //全部的参数
+        new CaseInsensitiveMap<>()
 
         return CaseMethod.builder().params(params).caseSteps(pageObjectStructures).asserts(assertList).build();
     }
@@ -272,6 +276,16 @@ public class CaseParse {
                     return params.containsAll(methodParam);
                 }
         );
+    }
+
+    /**
+     * 根据传入的key初始化一个map，key是参数名，value是参数值
+     * 注意：此方法中的value是空
+     * @param params
+     * @return
+     */
+    private CaseInsensitiveMap<String, Object> initTrueData(List<String> params) {
+
     }
 
     /**

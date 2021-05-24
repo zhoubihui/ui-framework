@@ -6,7 +6,6 @@ import com.pumpkin.model.config.AppConfigModel;
 import com.pumpkin.model.data.DataModel;
 import com.pumpkin.model.page.PageModel;
 import com.pumpkin.model.selector.SelectorModel;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;

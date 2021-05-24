@@ -24,10 +24,17 @@ public class ElementStructure {
     private CaseInsensitiveMap<String, ElementSelector> selectors;
     private String action;
 
-    /**
-     * PO方法的action操作需要的参数
-     */
-    private List<String> data;
+    ///**
+    // * PO方法的action操作需要的参数
+    // */
+    //private List<String> data;
+    //
+    ///**
+    // * 总数和data对应，两者一一对应，这里存储真实传入的变量值
+    // */
+    //private List<Object> trueData;
+
+    private CaseInsensitiveMap<String, Object> elementTrueData;
 
     /**
      * 元素操作枚举类

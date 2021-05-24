@@ -2,6 +2,7 @@ package com.pumpkin.runner.structure;
 
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
 import java.util.List;
 
@@ -19,10 +20,10 @@ public class CaseMethod {
      * case的方法名
      */
     private String name;
-    /**
-     * case需要传入的参数
-     */
-    private List<String> params;
+    ///**
+    // * case需要传入的参数
+    // */
+    //private List<String> params;
     /**
      * 对应xxx-case.yaml文件中的case下的steps关键字
      */
@@ -31,4 +32,11 @@ public class CaseMethod {
      * 对应xxx-case.yaml文件中的case下的assert关键字
      */
     private List<Assert> asserts;
+
+    ///**
+    // * 总数和params对应，两者一一对应，这里存储真实传入的变量值
+    // */
+    //private List<Object> trueData;
+
+    private CaseInsensitiveMap<String, Object> caseTrueData;
 }
