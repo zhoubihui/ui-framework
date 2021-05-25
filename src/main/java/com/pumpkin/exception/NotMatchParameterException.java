@@ -1,4 +1,4 @@
-package com.pumpkin.core;
+package com.pumpkin.exception;
 
 /**
  * @className: NotMatchParameterException
