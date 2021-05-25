@@ -8,7 +8,7 @@ package com.pumpkin.core;
  * @version: 1.0
  **/
 public class NotMatchParameterException extends RuntimeException {
-    public NotMatchParameterException(String methodName, String param) {
-        super(String.format("方法%s的实参与形参%s不匹配", methodName, param));
+    public NotMatchParameterException(String fileName, String methodName) {
+        super(String.format("文件%s内的方法%s内引用的参数在params部分没有定义", fileName, methodName));
     }
 }

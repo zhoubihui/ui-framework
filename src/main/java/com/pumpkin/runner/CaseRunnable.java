@@ -24,17 +24,9 @@ public class CaseRunnable implements Serializable {
      */
 
     /**
-     * @BeforeEach方法
-     */
-
-    /**
      * xxx-case.yaml中的cases字段，每个CaseStructure对象代表一个case，即一个测试方法
      */
     private List<CaseStructure> cases;
-
-    /**
-     * @AfterEach方法
-     */
 
     /**
      * @AfterAll方法

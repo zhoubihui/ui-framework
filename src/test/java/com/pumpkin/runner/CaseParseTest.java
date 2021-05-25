@@ -15,7 +15,7 @@ class CaseParseTest {
     void transformPOStep() {
         ElementModel elementModel = new ElementModel().setSelector("${search-selector.search}").setAction("input").
                 setData(Arrays.asList("${keyword}", "${replace}"));
-        CaseParse caseParse = CaseParse.builder().build();
+        CaseParse caseParse = new CaseParse();
         ElementStructure elementStructure = caseParse.transformPOStep(elementModel);
         System.out.println(elementStructure);
     }
@@ -23,7 +23,7 @@ class CaseParseTest {
     @Test
     void parseCase() {
         CaseModel caseModel = Model.getModel("search-case", CaseModel.class);
-        CaseParse caseParse = CaseParse.builder().caseFileName("search-case").build();
+        CaseParse caseParse = new CaseParse();
         CaseRunnable caseRunnable = caseParse.parseCase("search-case", caseModel);
         System.out.println(caseRunnable);
     }

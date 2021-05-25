@@ -9,6 +9,6 @@ package com.pumpkin.core;
  **/
 public class NotMatchMethodException extends RuntimeException {
     public NotMatchMethodException(String caseFileName, String methodName) {
-        super(String.format("文件%s内找到找到%s方法", caseFileName, methodName));
+        super(String.format("文件%s内找不到%s方法", caseFileName, methodName));
     }
 }

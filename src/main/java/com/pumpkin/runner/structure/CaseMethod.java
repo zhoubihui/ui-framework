@@ -22,10 +22,17 @@ public class CaseMethod implements Serializable {
      * case的方法名
      */
     private String name;
+
+    /**
+     * case的params部分定义的参数，用于参数替换时做校验
+     */
+    private List<String> params;
+
     /**
      * 对应xxx-case.yaml文件中的case下的steps关键字
      */
     private List<PageObjectStructure> caseSteps;
+
     /**
      * 对应xxx-case.yaml文件中的case下的assert关键字
      */
@@ -37,7 +44,17 @@ public class CaseMethod implements Serializable {
     private Set<String> caseParams;
 
     /**
-     * 存储当前测试方法需要的参数，和参数对应的值
+     * 断言中使用的参数
      */
-    private CaseInsensitiveMap<String, Object> trueData;
+    private Set<String> assertParams;
+
+    /**
+     * 存储当前case.steps中需要的参数，和参数对应的值
+     */
+    private CaseInsensitiveMap<String, Object> caseTrueData;
+
+    /**
+     * 存储当前case.assert中需要的参数，和参数对应的值
+     */
+    private CaseInsensitiveMap<String, Object> assertTrueData;
 }

@@ -29,7 +29,7 @@ public class CaseManager {
      * @return
      */
     public CaseRunnable getCase(String caseFileName) {
-        CaseParse caseParse = CaseParse.builder().caseFileName(caseFileName).build();
+        CaseParse caseParse = new CaseParse();
         //1、先从缓存中找，缓存中有即返回
         //2、缓存中没有，从硬盘读取对应文件并解析
         /**
