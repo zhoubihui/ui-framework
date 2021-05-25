@@ -16,6 +16,7 @@ import com.pumpkin.model.selector.SelectorModel;
 import com.pumpkin.runner.structure.*;
 import com.pumpkin.utils.ExceptionUtils;
 import com.pumpkin.utils.StringUtils;
+import com.rits.cloning.Cloner;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.SerializationUtils;
 
@@ -36,6 +37,7 @@ public class CaseParse {
     private final static String PARAM_REGEX = "\\((.+?)\\)";
     private final static String PARAM_SPLIT_REGEX = "\\$\\{(.+?)\\}";
     private final static Object PRESENT = new Object();
+    private final static Cloner CLONER = new Cloner();
 
     /**
      * 解析CaseModel，转成CaseRunnable格式
@@ -52,6 +54,7 @@ public class CaseParse {
          * 注意：@BeforeEach和@BeforeAll是放在CaseStructure结构中，一个CaseStructure代表一个xxx-case.yaml中定义的case，
          *  1) case的参数只有一组，那么CaseStructure.cases.size()==1
          *  2) case的参数有多组，那么CaseStructure.cases.size()>1
+         *  将来还可以做某个case忽略指定的生命周期方法
          */
         List<CaseInsensitiveMap<String, CaseMethodModel>> cases = caseModel.getCases();
 
@@ -82,9 +85,9 @@ public class CaseParse {
          */
 
         Map.Entry<String, CaseMethodModel> entry = testCase.entrySet().iterator().next();
-
         String caseMethodName = entry.getKey();
         CaseMethodModel caseMethodModel = entry.getValue();
+
         //校验参数
         verifyCaseMethodStepsParams(caseFileName, caseMethodName, caseMethodModel.getParams(),
                 caseMethodModel.getSteps());
@@ -97,11 +100,6 @@ public class CaseParse {
         //3、处理参数,从xxx-data中读取参数来生成完整的测试用例
         //3-1、处理用例的参数
         List<CaseMethod> caseMethods = replaceCaseParam(caseFileName, caseMethod);
-        /**
-         * 1、xxx-case的方法params在xxx-data中获取，steps和assert中引用的参数都需要在params中定义，
-         *      反之params中定义的参数在steps，asserts中不一定会使用
-         * 2、xxx-page的po方法params在xxx-case.steps中调用该po方法时传入，params定义的参数都需要从case中传入，
-         */
 
         return CaseStructure.builder().cases(caseMethods).build();
     }
@@ -115,28 +113,22 @@ public class CaseParse {
         List<String> caseSteps = caseMethodModel.getSteps();
         List<CaseAssertModel> asserts = caseMethodModel.getAsserts();
         /**
-         * 1、获取steps中引用的参数
-         * 2、获取asserts中的expected引用的参数
+         * 1、获取steps中引用的全部参数
+         * 2、获取asserts中的expected引用的全部参数
+         * 3、处理steps
+         * 4、处理asserts
+         * 5、分别组装steps和asserts中引用的参数
          */
         Set<String> caseParams = caseSteps.stream().flatMap(caseStep -> splitMethodParam(caseStep).stream()).
                 collect(Collectors.toSet());
         Set<String> assertParams = asserts.stream().map(a -> splitParam(a.getExpected())).collect(Collectors.toSet());
 
-        /**
-         * 处理steps
-         */
         List<PageObjectStructure> pageObjectStructures = caseSteps.stream().
                 map(caseStep -> transformCaseStep(caseFileName, caseMethodName, caseStep)).
                 collect(Collectors.toList());
 
-        /**
-         * 处理asserts
-         */
         List<Assert> assertList = asserts.stream().map(this::transformCaseAssert).collect(Collectors.toList());
 
-        /**
-         * 分别组装steps和asserts中引用的参数
-         */
         CaseInsensitiveMap<String, Object> caseTrueData = new CaseInsensitiveMap<>();
         caseParams.forEach(p -> caseTrueData.put(p, PRESENT));
         CaseInsensitiveMap<String, Object> assertTrueData = new CaseInsensitiveMap<>();
@@ -153,35 +145,42 @@ public class CaseParse {
      * 传入的每个step都是调用PO的方法，暂时不支持不写前缀
      * 注意：传入的格式有以下形式
      * ${message-page.to-search}
-     * ${search(${keyword})}
-     * ${search(${keyword}, ${replace})}
+     * ${search-page.search(${keyword})}
+     * ${search-page.search(${keyword}, ${replace})}
+     * @param caseFileName
+     * @param caseMethodName
      * @param step
      */
     public PageObjectStructure transformCaseStep(String caseFileName, String caseMethodName, String step) {
         /**
          * 1、替换step中调用的PO方法
+         * 2、读取PO方法体，校验case传递给PO的参数是否和PO中定义的参数格个数相同
+         * 3、校验PO方法内部引用的变量是否在params中定义
+         * 4、PO方法体转成ElementStructure结构
          */
         List<String> poMethods = splitFileAndMethod(step);
         String poFileName = poMethods.get(0);
         String poMethodName = poMethods.get(1);
-        List<String> caseToPOData = splitMethodParam(step); //case传给po的参数
+        //case传给po的参数
+        List<String> caseToPOData = splitMethodParam(step);
 
         /**
          * 先从缓存PageCache中找，找不到再读取文件
          */
         PageModel pageModel = Model.getModel(poFileName, PageModel.class);
         MethodModel methodModel = pageModel.getMethod(poMethodName);
-        //1-1、判断case传递的参数个数是否和PO定义的参数个数相同
-        List<String> params = methodModel.getParams(); //po中定义的参数
+
+        //po中定义的参数
+        List<String> params = methodModel.getParams();
         verifyCallPOMethodParams(caseFileName, caseMethodName, poFileName, poMethodName, params, caseToPOData);
 
-        //1-2、判断steps中引用的参数，在params是否都有定义
         verifyPOMethodParams(poFileName, poMethodName, params, methodModel.getSteps());
 
-        //2、方法体转ElementStructure
         List<ElementStructure> elementStructures = methodModel.getSteps().stream().map(this::transformPOStep).
                 collect(Collectors.toList());
-        return PageObjectStructure.builder().pageFileName(poFileName).name(poMethodName).params(params).
+        return PageObjectStructure.builder().
+                pageFileName(poFileName).name(poMethodName).
+                params(params).
                 poSteps(elementStructures).build();
     }
 
@@ -191,12 +190,15 @@ public class CaseParse {
      * @return
      */
     public ElementStructure transformPOStep(ElementModel poStep) {
-        //1、处理selector
+        /**
+         * 1、处理selector，从xxx-selector.yaml中读取全部平台的定位符，等到具体运行时再根据平台选择某一个定位符
+         * 2、处理action
+         * 3、处理data
+         */
         CaseInsensitiveMap<String, ElementSelector> elementSelectorMap = transformSelector(poStep.getSelector());
-        //2、处理action
         String action = poStep.getAction();
-        //3、处理data
         List<String> data = poStep.getData();
+
         List<String> dataTemp = null;
         if (Objects.nonNull(data))
             dataTemp = data.stream().map(this::splitParam).collect(Collectors.toList());
@@ -213,12 +215,12 @@ public class CaseParse {
     public CaseInsensitiveMap<String, ElementSelector> transformSelector(String selector) {
         CaseInsensitiveMap<String, ElementSelector> elementSelectorMap = new CaseInsensitiveMap<>();
         List<String> poMethods = splitFileAndMethod(selector);
-        String filePath = poMethods.get(0);
+        String selectorFileName = poMethods.get(0);
         String selectorName = poMethods.get(1);
         /**
          * 先从缓存SelectorCache中找，找不到再读取文件
          */
-        SelectorModel selectorModel = Model.getModel(filePath, SelectorModel.class);
+        SelectorModel selectorModel = Model.getModel(selectorFileName, SelectorModel.class);
         Map<String, ElementSelectorModel> elementSelectorModel = selectorModel.getSelector(selectorName);
 
         /**
@@ -240,6 +242,8 @@ public class CaseParse {
 
     /**
      * 将参数替换case、中的模板参数，有多组参数则生成多个CaseMethod返回
+     * @param caseFileName
+     * @param caseMethod
      * @return
      */
     private List<CaseMethod> replaceCaseParam(String caseFileName, CaseMethod caseMethod) {
@@ -263,21 +267,22 @@ public class CaseParse {
          */
         Set<String> caseParams = caseMethod.getCaseParams();
         List<String> params = caseMethod.getParams();
+
         verifyCallCaseMethodParams(caseFileName, caseMethod.getName(), dataFileName, params, methodData);
 
         int dataMinLength = caseParams.stream().map(p -> methodData.get(p).size()).sorted().findFirst().orElse(0);
         Stream.iterate(0, index -> index + 1).limit(dataMinLength).forEach(
                 index -> {
-                    CaseMethod temp = SerializationUtils.clone(caseMethod);
+                    CaseMethod temp = CLONER.deepClone(caseMethod);
                     CaseInsensitiveMap<String, Object> caseTrueData = temp.getCaseTrueData();
-                    caseTrueData.keySet().stream().forEach(
+                    caseTrueData.keySet().forEach(
                          key -> {
                              Object obj = methodData.get(key).get(index);
                              caseTrueData.put(key, obj);
                          }
                     );
                     CaseInsensitiveMap<String, Object> assertTrueData = temp.getAssertTrueData();
-                    assertTrueData.keySet().stream().forEach(
+                    assertTrueData.keySet().forEach(
                             key -> {
                                 Object obj = methodData.get(key).get(index);
                                 assertTrueData.put(key, obj);

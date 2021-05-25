@@ -16,9 +16,6 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class CaseMethodModel implements Model {
-    private final String PARAM_REGEX = "\\((.+?)\\)";
-    private final String PARAM_SPLIT_REGEX = "\\{(.+?)\\}.+\\{(.+?)\\}";
-
     private List<String> params;
     private List<String> steps;
     private List<CaseAssertModel> asserts;

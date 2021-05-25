@@ -6,3 +6,6 @@ data:
     expected:
       - 周永震
       - 助理部
+    replace:
+      - true
+      - false

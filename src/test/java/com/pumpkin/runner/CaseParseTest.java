@@ -4,7 +4,6 @@ import com.pumpkin.model.Model;
 import com.pumpkin.model.cases.CaseModel;
 import com.pumpkin.model.page.ElementModel;
 import com.pumpkin.runner.structure.ElementStructure;
-import com.pumpkin.runner.structure.PageObjectStructure;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
