@@ -44,7 +44,7 @@ public class CaseParse {
      * @param caseModel
      * @return
      */
-    public CaseRunnable parseCase(String caseFileName, CaseModel caseModel) {
+    public static CaseRunnable parseCase(String caseFileName, CaseModel caseModel) {
         /**
          * 1、遍历@BeforeAll方法
          * 2、遍历@BeforeEach方法
@@ -69,7 +69,7 @@ public class CaseParse {
      * 注意: case是关键字，所以这里变量改名为testCase
      * @param testCase
      */
-    public CaseStructure transformCase(String caseFileName, Map<String, CaseMethodModel> testCase) {
+    private static CaseStructure transformCase(String caseFileName, Map<String, CaseMethodModel> testCase) {
         /**
          * 处理CaseModel.cases下的case
          * 1、校验case.steps中引用的参数是否在case.params中定义
@@ -108,7 +108,7 @@ public class CaseParse {
      * 解析CaseMethodModel
      * @param caseMethodModel
      */
-    public CaseMethod transformCaseMethod(String caseFileName, String caseMethodName, CaseMethodModel caseMethodModel) {
+    private static CaseMethod transformCaseMethod(String caseFileName, String caseMethodName, CaseMethodModel caseMethodModel) {
         List<String> params = caseMethodModel.getParams();
         List<String> caseSteps = caseMethodModel.getSteps();
         List<CaseAssertModel> asserts = caseMethodModel.getAsserts();
@@ -127,7 +127,7 @@ public class CaseParse {
                 map(caseStep -> transformCaseStep(caseFileName, caseMethodName, caseStep)).
                 collect(Collectors.toList());
 
-        List<Assert> assertList = asserts.stream().map(this::transformCaseAssert).collect(Collectors.toList());
+        List<Assert> assertList = asserts.stream().map(CaseParse::transformCaseAssert).collect(Collectors.toList());
 
         CaseInsensitiveMap<String, Object> caseTrueData = new CaseInsensitiveMap<>();
         caseParams.forEach(p -> caseTrueData.put(p, PRESENT));
@@ -151,7 +151,7 @@ public class CaseParse {
      * @param caseMethodName
      * @param step
      */
-    public PageObjectStructure transformCaseStep(String caseFileName, String caseMethodName, String step) {
+    private static PageObjectStructure transformCaseStep(String caseFileName, String caseMethodName, String step) {
         /**
          * 1、替换step中调用的PO方法
          * 2、读取PO方法体，校验case传递给PO的参数是否和PO中定义的参数格个数相同
@@ -176,7 +176,7 @@ public class CaseParse {
 
         verifyPOMethodParams(poFileName, poMethodName, params, methodModel.getSteps());
 
-        List<ElementStructure> elementStructures = methodModel.getSteps().stream().map(this::transformPOStep).
+        List<ElementStructure> elementStructures = methodModel.getSteps().stream().map(CaseParse::transformPOStep).
                 collect(Collectors.toList());
         return PageObjectStructure.builder().
                 pageFileName(poFileName).name(poMethodName).
@@ -189,7 +189,7 @@ public class CaseParse {
      * @param poStep
      * @return
      */
-    public ElementStructure transformPOStep(ElementModel poStep) {
+    private static ElementStructure transformPOStep(ElementModel poStep) {
         /**
          * 1、处理selector，从xxx-selector.yaml中读取全部平台的定位符，等到具体运行时再根据平台选择某一个定位符
          * 2、处理action
@@ -201,7 +201,7 @@ public class CaseParse {
 
         List<String> dataTemp = null;
         if (Objects.nonNull(data))
-            dataTemp = data.stream().map(this::splitParam).collect(Collectors.toList());
+            dataTemp = data.stream().map(CaseParse::splitParam).collect(Collectors.toList());
         else
             dataTemp = Collections.emptyList();
         return ElementStructure.builder().selectors(elementSelectorMap).action(action).data(dataTemp).build();
@@ -212,7 +212,7 @@ public class CaseParse {
      * @param selector
      * @return
      */
-    public CaseInsensitiveMap<String, ElementSelector> transformSelector(String selector) {
+    private static CaseInsensitiveMap<String, ElementSelector> transformSelector(String selector) {
         CaseInsensitiveMap<String, ElementSelector> elementSelectorMap = new CaseInsensitiveMap<>();
         List<String> poMethods = splitFileAndMethod(selector);
         String selectorFileName = poMethods.get(0);
@@ -236,7 +236,7 @@ public class CaseParse {
         return elementSelectorMap;
     }
 
-    public Assert transformCaseAssert(CaseAssertModel caseAssertModel) {
+    private static Assert transformCaseAssert(CaseAssertModel caseAssertModel) {
         return null;
     }
 
@@ -246,7 +246,7 @@ public class CaseParse {
      * @param caseMethod
      * @return
      */
-    private List<CaseMethod> replaceCaseParam(String caseFileName, CaseMethod caseMethod) {
+    private static List<CaseMethod> replaceCaseParam(String caseFileName, CaseMethod caseMethod) {
         String dataFileName = findCaseDependFile(caseFileName, DATA);
         List<CaseMethod> caseMethods = new ArrayList<>();
         /**
@@ -302,7 +302,7 @@ public class CaseParse {
      * @param input
      * @return
      */
-    private List<String> splitFileAndMethod(String input) {
+    private static List<String> splitFileAndMethod(String input) {
         int startIndex = input.indexOf("{");
         int endIndex = input.indexOf("(");
         if (endIndex == -1)
@@ -317,7 +317,7 @@ public class CaseParse {
      * @param input
      * @return
      */
-    private String splitParam(String input) {
+    private static String splitParam(String input) {
         return StringUtils.matcher(input, PARAM_SPLIT_REGEX);
     }
 
@@ -329,19 +329,19 @@ public class CaseParse {
      * @param input
      * @return
      */
-    private List<String> splitMethodParam(String input) {
+    private static List<String> splitMethodParam(String input) {
         String params = StringUtils.matcher(input, PARAM_REGEX);
         if (params.isBlank())
             return Collections.emptyList();
         return Arrays.stream(params.split(",\\s*")).map(
-                this::splitParam
+                CaseParse::splitParam
         ).collect(Collectors.toList());
     }
 
     /**
      * 校验case方法内的steps引用的变量是否在params部分定义，任一个不满足抛异常
      */
-    private void verifyCaseMethodStepsParams(String caseFileName, String caseMethodName,
+    private static void verifyCaseMethodStepsParams(String caseFileName, String caseMethodName,
                                         List<String> params, List<String> caseSteps) {
         if (!isTrueCaseMethodStepsParams(params, caseSteps))
             ExceptionUtils.throwAsUncheckedException(
@@ -353,7 +353,7 @@ public class CaseParse {
      * 校验case方法内的asserts引用的变量是否在params部分定义，任一个不满足则抛异常
      * 注意：目前只支持期望值判断
      */
-    private void verifyCaseMethodAssertsParams(String caseFileName, String caseMethodName,
+    private static void verifyCaseMethodAssertsParams(String caseFileName, String caseMethodName,
                                                List<String> params, List<CaseAssertModel> asserts) {
         if (!isTrueCaseMethodAssertsParams(params, asserts))
             ExceptionUtils.throwAsUncheckedException(
@@ -364,7 +364,7 @@ public class CaseParse {
     /**
      * 校验po方法内引用的变量是否在params部分定义，任一个不满足抛异常
      */
-    private void verifyPOMethodParams(String poFileName, String poMethodName,
+    private static void verifyPOMethodParams(String poFileName, String poMethodName,
                                       List<String> params, List<ElementModel> poSteps) {
         if (!isTruePOMethodParams(params, poSteps))
             ExceptionUtils.throwAsUncheckedException(
@@ -375,7 +375,7 @@ public class CaseParse {
     /**
      * 校验case调用po方法时，传入的参数是否和po的params定义的参数个数相同，不满足则抛异常
      */
-    private void verifyCallPOMethodParams(String caseFileName, String caseName,
+    private static void verifyCallPOMethodParams(String caseFileName, String caseName,
                                           String poFileName, String poMethodName,
                                           List<String> params, List<String> caseToPOParams) {
         if (Objects.nonNull(params) && caseToPOParams.size() != params.size())
@@ -385,7 +385,7 @@ public class CaseParse {
     /**
      * 校验xxx-data.yaml文件中传给case的参数个数、参数名是否一致
      */
-    private void verifyCallCaseMethodParams(String caseFileName, String caseMethodName,
+    private static void verifyCallCaseMethodParams(String caseFileName, String caseMethodName,
                                             String dataFileName,
                                             List<String> caseParams, Map<String, List<Object>> dataParams) {
         boolean paramTotal = caseParams.size() == dataParams.keySet().size();
@@ -404,7 +404,7 @@ public class CaseParse {
      * @param caseSteps
      * @return
      */
-    private boolean isTrueCaseMethodStepsParams(List<String> params, List<String> caseSteps) {
+    private static boolean isTrueCaseMethodStepsParams(List<String> params, List<String> caseSteps) {
         return caseSteps.stream().allMatch(
                 s -> {
                     List<String> methodParam = splitMethodParam(s);
@@ -419,7 +419,7 @@ public class CaseParse {
      * @param asserts
      * @return
      */
-    private boolean isTrueCaseMethodAssertsParams(List<String> params, List<CaseAssertModel> asserts) {
+    private static boolean isTrueCaseMethodAssertsParams(List<String> params, List<CaseAssertModel> asserts) {
         return asserts.stream().allMatch(
                 a -> {
                     String param = splitParam(a.getExpected());
@@ -434,12 +434,12 @@ public class CaseParse {
      * @param poSteps
      * @return
      */
-    private boolean isTruePOMethodParams(List<String> params, List<ElementModel> poSteps) {
+    private static boolean isTruePOMethodParams(List<String> params, List<ElementModel> poSteps) {
         return poSteps.stream().allMatch(
                 e -> {
                     if (Objects.isNull(e.getData()))
                         return true;
-                    List<String> dataList = e.getData().stream().map(this::splitParam).collect(Collectors.toList());
+                    List<String> dataList = e.getData().stream().map(CaseParse::splitParam).collect(Collectors.toList());
                     return params.containsAll(dataList);
                 }
         );
@@ -449,7 +449,7 @@ public class CaseParse {
      * 转换case依赖的xxx-data、xxx-page、xxx-selector的文件名
      * @return
      */
-    private String findCaseDependFile(String caseFileName, CaseDependFile caseDependFile) {
+    private static String findCaseDependFile(String caseFileName, CaseDependFile caseDependFile) {
         int endIndex = caseFileName.indexOf("-");
         String prefix = caseFileName.substring(0, endIndex + 1);
         return prefix + caseDependFile.getSuffix();
