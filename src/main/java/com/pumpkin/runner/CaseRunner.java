@@ -1,6 +1,7 @@
 package com.pumpkin.runner;
 
 import com.pumpkin.runner.structure.*;
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
 import java.util.List;
 import java.util.Map;
@@ -56,18 +57,33 @@ public class CaseRunner {
 
     private static void runPageObjectStructure(PageObjectStructure poStructure, Map<String, Object> caseTrueData) {
         /**
-         * 1、执行PO方法
+         * 1、取出case传递给po方法的参数
+         * 2、执行po方法
          */
         List<ElementStructure> poSteps = poStructure.getPoSteps();
+        List<String> params = poStructure.getParams();
+        List<String> caseToPOParams = poStructure.getCaseToPOParams();
 
-        poSteps.forEach(CaseRunner::runPOStep);
+        CaseInsensitiveMap<String, Object> poTrueData = new CaseInsensitiveMap<>();
+        for (int i = 0; i < caseToPOParams.size(); ++i) {
+            Object obj = caseTrueData.get(caseToPOParams.get(i));
+            poTrueData.put(params.get(i), obj);
+        }
+
+        poSteps.forEach(poStep -> runPOStep(poStep, poTrueData));
     }
 
-    private static void runPOStep(ElementStructure poStep) {
+    private static void runPOStep(ElementStructure poStep, Map<String, Object> poTrueData) {
         /**
          * 1、根据特定平台的定位符查找元素
-         * 2、根据指定action操作元素
+         * 2、判断指定action所需的参数是否都有传递
+         * 3、根据指定action操作元素
          */
+        Map<String, ElementSelector> selectors = poStep.getSelectors();
+        String action = poStep.getAction();
+        List<String> data = poStep.getData();
+
+
     }
 
     private static void runAssert(Assert caseAssert, Map<String, Object> assertTrueData) {
