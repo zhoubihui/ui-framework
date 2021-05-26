@@ -24,7 +24,7 @@ class YamlParseTest {
 
     static Stream<Arguments> readValue() {
         return Stream.of(
-                Arguments.of("config/app-config.yaml", AppConfigModel.class),
+                Arguments.of("app-config.yaml", AppConfigModel.class),
                 Arguments.of("page/search-page.yaml", PageModel.class),
                 Arguments.of("page/message-page.yaml", PageModel.class),
                 Arguments.of("selector/search-selector.yaml", SelectorModel.class),

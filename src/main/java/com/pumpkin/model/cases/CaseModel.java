@@ -1,5 +1,6 @@
 package com.pumpkin.model.cases;
 
+import com.pumpkin.model.EnvModel;
 import com.pumpkin.model.Model;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -17,5 +18,13 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class CaseModel implements Model {
+    /**
+     * 定义这个case文件运行的环境
+     */
+    private EnvModel env;
+
+    /**
+     * 测试方法
+     */
     private List<CaseInsensitiveMap<String, CaseMethodModel>> cases;
 }

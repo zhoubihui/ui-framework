@@ -2,6 +2,7 @@ package com.pumpkin.runner.structure;
 
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
 import java.io.Serializable;
 import java.util.List;

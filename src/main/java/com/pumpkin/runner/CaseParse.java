@@ -3,6 +3,7 @@ package com.pumpkin.runner;
 import com.pumpkin.exception.CallCaseMethodException;
 import com.pumpkin.exception.CallPOMethodException;
 import com.pumpkin.exception.NotMatchParameterException;
+import com.pumpkin.model.EnvModel;
 import com.pumpkin.model.Model;
 import com.pumpkin.model.cases.CaseAssertModel;
 import com.pumpkin.model.cases.CaseMethodModel;
@@ -54,13 +55,23 @@ public class CaseParse {
          *  1) case的参数只有一组，那么CaseStructure.cases.size()==1
          *  2) case的参数有多组，那么CaseStructure.cases.size()>1
          *  将来还可以做某个case忽略指定的生命周期方法
+         * 6、处理env环境配置问题
          */
         List<CaseInsensitiveMap<String, CaseMethodModel>> cases = caseModel.getCases();
+        EnvModel envModel = caseModel.getEnv();
 
         List<CaseStructure> caseStructures = cases.stream().map(c -> transformCase(caseFileName, c)).
                 collect(Collectors.toList());
 
-        return CaseRunnable.builder().caseFileName(caseFileName).cases(caseStructures).build();
+        Env env = null;
+        if (Objects.nonNull(envModel))
+            env = Env.builder().platform(envModel.getPlatform()).targetApp(envModel.getTargetApp()).build();
+
+        return CaseRunnable.builder().
+                caseFileName(caseFileName).
+                cases(caseStructures).
+                env(env).
+                build();
     }
 
     /**

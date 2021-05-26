@@ -45,4 +45,6 @@ public class AppConfigModel implements Model {
             return null;
         return platformDetail.get(appKey);
     }
+
+
 }

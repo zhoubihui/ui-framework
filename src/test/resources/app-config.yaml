@@ -17,6 +17,7 @@ app:
       caps:
         appPackage: com.tencent.wework
         appActivity: .launch.WwMainActivity
+        noReset: false
   iOS:
     UICatalog:
       caps:

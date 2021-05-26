@@ -1,11 +1,13 @@
 package com.pumpkin.runner;
 
 import com.pumpkin.runner.structure.CaseStructure;
+import com.pumpkin.runner.structure.Env;
 import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @className: CaseRunnable
@@ -31,4 +33,9 @@ public class CaseRunnable implements Serializable {
     /**
      * @AfterAll方法
      */
+
+    /**
+     * 这个case文件的运行环境
+     */
+    private Env env;
 }

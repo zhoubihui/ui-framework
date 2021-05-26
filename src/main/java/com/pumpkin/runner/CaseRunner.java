@@ -1,5 +1,6 @@
 package com.pumpkin.runner;
 
+import com.pumpkin.model.EnvModel;
 import com.pumpkin.runner.structure.*;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
@@ -14,19 +15,23 @@ import java.util.Map;
  * @version: 1.0
  **/
 public class CaseRunner {
+
     public static void runCase(CaseRunnable caseRunnable) {
         /**
          * 1、判断cases是否有数据，有才继续往下执行
-         * 2、执行@BeforeAll
-         * 3、执行@BeforeEach
-         * 4、执行case
-         * 5、执行@AfterEach
-         * 6、执行@AfterAll
-         * 注意：345是循环执行
+         * 2、确定用例的执行平台信息
+         * 3、执行@BeforeAll
+         * 4、执行@BeforeEach
+         * 5、执行case
+         * 6、执行@AfterEach
+         * 7、执行@AfterAll
+         *  注意：345是循环执行
          */
         List<CaseStructure> cases = caseRunnable.getCases();
+        Env env = caseRunnable.getEnv();
         if (cases.isEmpty())
             return;
+
 
         cases.forEach(CaseRunner::runCaseStructure);
     }
