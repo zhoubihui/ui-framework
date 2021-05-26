@@ -20,15 +20,29 @@ public class PageObjectStructure implements Serializable {
      * PO方法所属的文件名
      */
     private String pageFileName;
+
     /**
      * PO方法的名称
      */
     private String name;
+
     /**
-     * 方法的形参,为空则说明该PO方法是无参方法,并且用List的顺序来表示方法的顺序
-     * 注意：这里的顺序和个数应该和PO方法中定义的params部分一致
+     * case传递给po方法的参数和po定义的参数按顺序来确定
+     * 注意：有顺序要求，无名称要求，举例：
+     * case: ${search-page.search(${keyword},${replace})}
+     * po:
+     *  params:
+     *      - replace
+     *      - keyword
+     * 那么按位置对应，${keyword}的值给replace
      */
     private List<String> params;
+
+    /**
+     * case传递给PO的参数顺序
+     */
+    private List<String> caseToPOParams;
+
     /**
      * 方法的步骤
      */

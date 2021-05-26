@@ -3,6 +3,7 @@ package com.pumpkin.runner;
 import com.pumpkin.runner.structure.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @className: CaseRunner
@@ -46,12 +47,14 @@ public class CaseRunner {
          */
         List<PageObjectStructure> caseSteps = caseMethod.getCaseSteps();
         List<Assert> asserts = caseMethod.getAsserts();
+        Map<String, Object> caseTrueData = caseMethod.getCaseTrueData();
+        Map<String, Object> assertTrueData = caseMethod.getAssertTrueData();
 
-        caseSteps.forEach(CaseRunner::runPageObjectStructure);
-        asserts.forEach(CaseRunner::runAssert);
+        caseSteps.forEach(caseStep -> runPageObjectStructure(caseStep, caseTrueData));
+        asserts.forEach(assertStep -> runAssert(assertStep, assertTrueData));
     }
 
-    private static void runPageObjectStructure(PageObjectStructure poStructure) {
+    private static void runPageObjectStructure(PageObjectStructure poStructure, Map<String, Object> caseTrueData) {
         /**
          * 1、执行PO方法
          */
@@ -67,7 +70,7 @@ public class CaseRunner {
          */
     }
 
-    private static void runAssert(Assert caseAssert) {
+    private static void runAssert(Assert caseAssert, Map<String, Object> assertTrueData) {
         /**
          * 执行assert
          */

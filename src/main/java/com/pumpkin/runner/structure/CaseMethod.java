@@ -25,6 +25,7 @@ public class CaseMethod implements Serializable {
 
     /**
      * case的params部分定义的参数，用于参数替换时做校验
+     * 注意：xxx-data.yaml和params的参数顺序不要求相同，名称和个数相同即可
      */
     private List<String> params;
 

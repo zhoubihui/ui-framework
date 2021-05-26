@@ -179,7 +179,7 @@ public class CaseParse {
                 collect(Collectors.toList());
         return PageObjectStructure.builder().
                 pageFileName(poFileName).name(poMethodName).
-                params(params).
+                params(params).caseToPOParams(caseToPOData).
                 poSteps(elementStructures).build();
     }
 
