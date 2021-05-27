@@ -1,6 +1,6 @@
 package com.pumpkin.model.page;
 
-import com.pumpkin.model.ConfigModel;
+import com.pumpkin.model.UrlConfigModel;
 import com.pumpkin.model.Model;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -16,7 +16,10 @@ import org.apache.commons.collections4.map.CaseInsensitiveMap;
 @Data
 @Accessors(chain = true)
 public class PageModel implements Model {
-    private ConfigModel config;
+    /**
+     * 依赖文件的父目录
+     */
+    private UrlConfigModel config;
 
     private CaseInsensitiveMap<String, MethodModel> methods;
 

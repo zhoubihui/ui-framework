@@ -11,21 +11,25 @@ import com.pumpkin.model.cases.CaseModel;
  * @version: 1.0
  **/
 public class CaseManager {
-    private static CaseManager caseManager;
+    private static CaseManager manager;
     private CaseManager() {
     }
 
     public static CaseManager getInstance() {
         synchronized (CaseManager.class) {
-            if (caseManager == null)
-                caseManager = new CaseManager();
+            if (manager == null)
+                manager = new CaseManager();
         }
-        return caseManager;
+        return manager;
     }
 
     /**
      * 根据用例名称，获取对应的用例结构实例
-     * @param caseFileName 举例：search-case
+     * 运行用例的可能性：
+     * 1、单个case文件运行
+     * 2、运行目录下的case文件
+     * 所以传入这个方法的caseFileName是一个相对路径，指定要运行哪个case文件，2是上层处理的
+     * @param caseFileName 举例：case/search-case.yaml
      * @return
      */
     public CaseRunnable getCase(String caseFileName) {

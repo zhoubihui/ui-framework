@@ -1,11 +1,10 @@
 package com.pumpkin.model;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * @className: ConfigModel
+ * @className: UrlConfigModel
  * @description: TODO 类描述
  * @author: pumpkin
  * @date: 2021/5/27 3:02 下午
@@ -13,7 +12,7 @@ import lombok.experimental.Accessors;
  **/
 @Data
 @Accessors(chain = true)
-public class ConfigModel {
+public class UrlConfigModel {
     private String pageUrl;
     private String selectorUrl;
     private String dataUrl;

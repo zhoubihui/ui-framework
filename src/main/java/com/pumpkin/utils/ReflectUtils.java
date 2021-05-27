@@ -1,7 +1,9 @@
 package com.pumpkin.utils;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -54,6 +56,46 @@ public class ReflectUtils {
     private static Method makeAccessible(Method method) {
         method.setAccessible(true);
         return method;
+    }
+
+    /**
+     * 获取对应属性
+     * @param clazz
+     * @param fieldName
+     * @return
+     */
+    public static Optional<Field> findField(Class<?> clazz, String fieldName) {
+        Field field = null;
+        try {
+            field = clazz.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            ExceptionUtils.throwAsUncheckedException(e);
+        }
+        return Optional.ofNullable(field);
+    }
+
+    /**
+     * 获取字段的值
+     * @param obj
+     * @param field
+     * @return
+     */
+    public static Object getFieldValue(Object obj, Field field) {
+        try {
+            return makeAccessible(field).get(obj);
+        } catch (IllegalAccessException e) {
+            throw ExceptionUtils.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * 设置当前字段是可访问的
+     * @param field
+     * @return
+     */
+    private static Field makeAccessible(Field field) {
+        field.setAccessible(true);
+        return field;
     }
 
     /**

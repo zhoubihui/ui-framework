@@ -1,6 +1,6 @@
 package com.pumpkin.model.cases;
 
-import com.pumpkin.model.ConfigModel;
+import com.pumpkin.model.UrlConfigModel;
 import com.pumpkin.model.EnvModel;
 import com.pumpkin.model.Model;
 import lombok.Data;
@@ -24,7 +24,10 @@ public class CaseModel implements Model {
      */
     private EnvModel env;
 
-    private ConfigModel config;
+    /**
+     * 定义依赖文件路径
+     */
+    private UrlConfigModel config;
 
     /**
      * 测试方法

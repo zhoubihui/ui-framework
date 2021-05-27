@@ -16,10 +16,19 @@ import com.pumpkin.model.selector.ElementSelectorModel;
 import com.pumpkin.model.selector.SelectorModel;
 import com.pumpkin.runner.structure.*;
 import com.pumpkin.utils.ExceptionUtils;
+import com.pumpkin.utils.FileUtils;
+import com.pumpkin.utils.ReflectUtils;
 import com.pumpkin.utils.StringUtils;
 import com.rits.cloning.Cloner;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -257,7 +266,8 @@ public class CaseParse {
      * @return
      */
     private static List<CaseMethod> replaceCaseParam(String caseFileName, CaseMethod caseMethod) {
-        String dataFileName = findCaseDependFile(caseFileName, DATA);
+        String dataFileName = null;
+                //findCaseDependFile(caseFileName, DATA);
         List<CaseMethod> caseMethods = new ArrayList<>();
         /**
          * 先从缓存DataCache中找，找不到再读取文件
@@ -459,24 +469,54 @@ public class CaseParse {
      * 转换case依赖的xxx-data、xxx-page、xxx-selector的文件名
      * @return
      */
-    private static String findCaseDependFile(String caseFileName, CaseDependFile caseDependFile) {
+    private static String findCaseDependFile(UrlConfig config, String caseFileName, CaseDependFile caseDependFile) {
         int endIndex = caseFileName.indexOf("-");
+        String dependBaseUrl = getCaseDependUrl(config, caseDependFile);
+        if (Objects.isNull(dependBaseUrl)) {
+            //从global-config中找dependUrl
+        }
         String prefix = caseFileName.substring(0, endIndex + 1);
+        String dependFile = prefix + "-" + caseDependFile.getSuffix();
+        /**
+         * 1、先判断文件这个目录下能不能找到这个文件名的路径
+         * 2、如果能找到，则使用
+         * 3、找不到则使用global-config.yaml中对于目录的配置，再继续找这个文件名
+         */
+        //怎么找到相对路径
+        String dependUrl = FileUtils.getFilePathFromDirectory(dependBaseUrl, dependFile);
+        if (org.apache.commons.lang3.StringUtils.isBlank(dependUrl)) {
+            //从global-config中找dependUrl
+        }
         return prefix + caseDependFile.getSuffix();
     }
 
+    /**
+     * 通过反射获取依赖文件路径
+     * @param config
+     * @param caseDependFile
+     * @return
+     */
+    private static String getCaseDependUrl(UrlConfig config, CaseDependFile caseDependFile) {
+        Field field = ReflectUtils.findField(config.getClass(), caseDependFile.getFieldName()).orElseThrow();
+        return ReflectUtils.getFieldValue(config, field).toString();
+    }
+
     enum CaseDependFile {
-        DATA("data"),
-        PAGE("page"),
-        SELECTOR("selector"),
+        DATA("data", "pageUrl"),
+        PAGE("page", "selectorUrl"),
+        SELECTOR("selector", "dataUrl"),
         ;
-        String alias;
-        CaseDependFile(String alias) {
-            this.alias = alias;
+        String[] aliases;
+        CaseDependFile(String... alias) {
+            this.aliases = alias;
         }
 
         public String getSuffix() {
-            return alias;
+            return aliases[0];
+        }
+
+        public String getFieldName() {
+            return aliases[1];
         }
     }
 }

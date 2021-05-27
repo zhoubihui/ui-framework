@@ -17,15 +17,14 @@ import java.io.IOException;
 public interface Model {
     /**
      * 根据文件路径获取对应Model子类
-     * @param fileName 传入的格式search-case
+     * @param fileName 传入的格式case/search-case.yaml，相对路径
      * @param clazz
      * @param <T>
      * @return
      */
     static <T> T getModel(String fileName, Class<T> clazz) {
         try {
-            String baseDirectory = GlobalConfigParse.getGlobalConfig().getBase().getBaseDirectory(fileName);
-            return YamlParse.readValue(FileUtils.getFilePathFromDirectory(baseDirectory, fileName), clazz);
+            return YamlParse.readValue(fileName, clazz);
         } catch (IOException e) {
             throw ExceptionUtils.throwAsUncheckedException(e);
         }
