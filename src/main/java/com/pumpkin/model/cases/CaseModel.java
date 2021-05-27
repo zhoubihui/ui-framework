@@ -1,5 +1,6 @@
 package com.pumpkin.model.cases;
 
+import com.pumpkin.model.ConfigModel;
 import com.pumpkin.model.EnvModel;
 import com.pumpkin.model.Model;
 import lombok.Data;
@@ -22,6 +23,8 @@ public class CaseModel implements Model {
      * 定义这个case文件运行的环境
      */
     private EnvModel env;
+
+    private ConfigModel config;
 
     /**
      * 测试方法

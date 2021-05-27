@@ -1,7 +1,7 @@
 package com.pumpkin.core;
 
 import com.pumpkin.model.config.AppConfigModel;
-import com.pumpkin.model.config.AppModel;
+import com.pumpkin.runner.structure.Env;
 import com.pumpkin.utils.YamlParse;
 import io.appium.java_client.remote.MobileCapabilityType;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
@@ -31,14 +31,16 @@ public class PlatformConfigParse {
         }
     }
 
-    public static CaseInsensitiveMap<String, Object> getConfig(String platformName, String targetApp) {
+    public static CaseInsensitiveMap<String, Object> getConfig(Env env) {
         CaseInsensitiveMap<String, Object> config = null;
+        String platformName = env.getPlatform();
 
         Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().
                 orElse(Platform.APP);
         switch (platform) {
             case APP:
-                config = initApp(platformName, targetApp);
+                String targetApp = env.getTargetApp();
+                config = initAppCaps(platformName, targetApp);
                 break;
             case WEB:
                 config = initWeb(platformName);
@@ -53,7 +55,7 @@ public class PlatformConfigParse {
      * @param targetApp
      * @return
      */
-    private static CaseInsensitiveMap<String, Object> initApp(String platformName, String targetApp) {
+    private static CaseInsensitiveMap<String, Object> initAppCaps(String platformName, String targetApp) {
         CaseInsensitiveMap<String, Object> appCaps = appConfig.getAppDetail(platformName, targetApp).getCaps();
         CaseInsensitiveMap<String, Object> globalCaps = appConfig.getBase().getCaps();
 
@@ -69,21 +71,5 @@ public class PlatformConfigParse {
 
     private static CaseInsensitiveMap<String, Object> initWeb(String platform) {
         return null;
-    }
-
-    /**
-     * case运行平台枚举
-     */
-    enum Platform {
-        APP("android", "ios"),
-        WEB("web"),
-        ;
-        String[] aliases;
-        Platform(String... alias) {
-            this.aliases = alias;
-        }
-        public boolean isAlias(String alias) {
-            return Arrays.stream(aliases).anyMatch(a -> a.equals(alias.toLowerCase()));
-        }
     }
 }

@@ -5,6 +5,7 @@ import io.appium.java_client.remote.MobileCapabilityType;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.openqa.selenium.WebDriver;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,11 +34,14 @@ public class DriverManager {
         return manager;
     }
 
-    public WebDriver getDriver(String caseFilename, Env env) {
-        CaseInsensitiveMap<String, Object> caps = EnvManager.getInstance().getCaps(caseFilename, env);
+    public WebDriver getDriver(String caseFileName, Env env) {
+        CaseInsensitiveMap<String, Object> caps = EnvManager.getInstance().getCaps(caseFileName, env);
         String platformName = (String) caps.get(MobileCapabilityType.PLATFORM_NAME);
-        switch (platformName) {
-            case
+        Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().orElse(Platform.APP);
+        switch (platform) {
+            case APP:
+
         }
+        return null;
     }
 }

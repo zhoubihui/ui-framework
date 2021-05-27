@@ -2,11 +2,6 @@ env:
   platform: Android
   targetApp: wework
 
-# todo 怎么定义路径呢，定义目录，然后case中不写文件名的话就默认是同名
-config:
-  pageUrl: page/
-  dataUrl: data/
-
 cases:
   - search:
       params:

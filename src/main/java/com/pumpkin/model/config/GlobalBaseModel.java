@@ -27,16 +27,16 @@ public class GlobalBaseModel {
         String baseDirectory = "";
         switch (fileName.split("-")[1].toUpperCase()) {
             case "CASE":
-                baseDirectory = getCaseDirectory();
+                baseDirectory = caseDirectory;
                 break;
             case "DATA":
-                baseDirectory = getDataDirectory();
+                baseDirectory = dataDirectory;
                 break;
             case "PAGE":
-                baseDirectory = getPageDirectory();
+                baseDirectory = pageDirectory;
                 break;
             case "SELECTOR":
-                baseDirectory = getSelectorDirectory();
+                baseDirectory = selectorDirectory;
                 break;
         }
         return baseDirectory;

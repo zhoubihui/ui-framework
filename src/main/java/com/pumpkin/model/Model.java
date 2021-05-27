@@ -30,6 +30,4 @@ public interface Model {
             throw ExceptionUtils.throwAsUncheckedException(e);
         }
     }
-
-
 }
