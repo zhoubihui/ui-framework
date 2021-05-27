@@ -25,11 +25,11 @@ class YamlParseTest {
     static Stream<Arguments> readValue() {
         return Stream.of(
                 Arguments.of("app-config.yaml", AppConfigModel.class),
-                Arguments.of("page/search-page.yaml", PageModel.class),
-                Arguments.of("page/message-page.yaml", PageModel.class),
-                Arguments.of("selector/search-selector.yaml", SelectorModel.class),
-                Arguments.of("data/search-data.yaml", DataModel.class),
-                Arguments.of("case/search-case.yaml", CaseModel.class)
+                Arguments.of("page/search/search-page.yaml", PageModel.class),
+                Arguments.of("page/search/message-page.yaml", PageModel.class),
+                Arguments.of("selector/search/search-selector.yaml", SelectorModel.class),
+                Arguments.of("data/search/search-data.yaml", DataModel.class),
+                Arguments.of("case/search/search-case.yaml", CaseModel.class)
         );
     }
 }

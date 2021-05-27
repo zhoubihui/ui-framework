@@ -1,3 +1,6 @@
+config:
+  selectorUrl: selector/search
+
 methods:
   search:
     params: # 表示这个po方法需要的参数
