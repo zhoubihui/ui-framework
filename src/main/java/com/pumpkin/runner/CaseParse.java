@@ -24,13 +24,7 @@ import com.rits.cloning.Cloner;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -73,27 +67,30 @@ public class CaseParse {
         EnvModel envModel = caseModel.getEnv();
         UrlConfigModel configModel = caseModel.getConfig();
 
-        List<CaseStructure> caseStructures = cases.stream().map(c -> transformCase(caseFileName, c, configModel)).
+        CaseRunnable.DependFileName dependFileName = transformPageAndDataFileName(caseFileName, configModel);
+        List<CaseStructure> caseStructures = cases.stream().map(c -> transformCase(caseFileName, c)).
                 collect(Collectors.toList());
 
-        Env env = null;
+        CaseRunnable.Env env = null;
         if (Objects.nonNull(envModel))
-            env = Env.builder().platform(envModel.getPlatform()).targetApp(envModel.getTargetApp()).build();
+            env = CaseRunnable.Env.builder().platform(envModel.getPlatform()).targetApp(envModel.getTargetApp()).build();
 
         return CaseRunnable.builder().
                 caseFileName(caseFileName).
                 cases(caseStructures).
                 env(env).
+                dependFileName(dependFileName).
                 build();
     }
+
+
 
     /**
      * 处理xxx-case.yaml中的methods下的每个method
      * 注意: case是关键字，所以这里变量改名为testCase
      * @param testCase
      */
-    private static CaseStructure transformCase(String caseFileName, Map<String, CaseMethodModel> testCase,
-                                               UrlConfigModel urlConfigModel) {
+    private static CaseStructure transformCase(String caseFileName, Map<String, CaseMethodModel> testCase) {
         /**
          * 处理CaseModel.cases下的case
          * 1、校验case.steps中引用的参数是否在case.params中定义
@@ -118,7 +115,7 @@ public class CaseParse {
         verifyCaseMethodAssertsParams(caseFileName, caseMethodName, caseMethodModel.getParams(),
                 caseMethodModel.getAsserts());
 
-        CaseMethod caseMethod = transformCaseMethod(caseFileName, caseMethodName, caseMethodModel, urlConfigModel);
+        CaseMethod caseMethod = transformCaseMethod(caseFileName, caseMethodName, caseMethodModel);
 
         //3、处理参数,从xxx-data中读取参数来生成完整的测试用例
         //3-1、处理用例的参数
@@ -131,8 +128,7 @@ public class CaseParse {
      * 解析CaseMethodModel
      * @param caseMethodModel
      */
-    private static CaseMethod transformCaseMethod(String caseFileName, String caseMethodName,
-                                                  CaseMethodModel caseMethodModel, UrlConfigModel urlConfigModel) {
+    private static CaseMethod transformCaseMethod(String caseFileName, String caseMethodName, CaseMethodModel caseMethodModel) {
         List<String> params = caseMethodModel.getParams();
         List<String> caseSteps = caseMethodModel.getSteps();
         List<CaseAssertModel> asserts = caseMethodModel.getAsserts();
@@ -148,7 +144,7 @@ public class CaseParse {
         Set<String> assertParams = asserts.stream().map(a -> splitParam(a.getExpected())).collect(Collectors.toSet());
 
         List<PageObjectStructure> pageObjectStructures = caseSteps.stream().
-                map(caseStep -> transformCaseStep(caseFileName, caseMethodName, caseStep, urlConfigModel)).
+                map(caseStep -> transformCaseStep(caseFileName, caseMethodName, caseStep)).
                 collect(Collectors.toList());
 
         List<Assert> assertList = asserts.stream().map(CaseParse::transformCaseAssert).collect(Collectors.toList());
@@ -175,8 +171,7 @@ public class CaseParse {
      * @param caseMethodName
      * @param step
      */
-    private static PageObjectStructure transformCaseStep(String caseFileName, String caseMethodName, String step,
-                                                         UrlConfigModel urlConfigModel) {
+    private static PageObjectStructure transformCaseStep(String caseFileName, String caseMethodName, String step) {
         /**
          * 1、替换step中调用的PO方法
          * 2、读取PO方法体，校验case传递给PO的参数是否和PO中定义的参数格个数相同
@@ -192,7 +187,7 @@ public class CaseParse {
         /**
          * 先从缓存PageCache中找，找不到再读取文件
          */
-        PageModel pageModel = Model.getModel(findCaseDependFile(urlConfigModel, caseFileName, PAGE), PageModel.class);
+        PageModel pageModel = Model.getModel("", PageModel.class);
         MethodModel methodModel = pageModel.getMethod(poMethodName);
 
         //po中定义的参数
@@ -201,8 +196,10 @@ public class CaseParse {
 
         verifyPOMethodParams(poFileName, poMethodName, params, methodModel.getSteps());
 
-        List<ElementStructure> elementStructures = methodModel.getSteps().stream().map(CaseParse::transformPOStep).
+        List<ElementStructure> elementStructures = methodModel.getSteps().stream().
+                map(CaseParse::transformPOStep).
                 collect(Collectors.toList());
+
         return PageObjectStructure.builder().
                 pageFileName(poFileName).name(poMethodName).
                 params(params).caseToPOParams(caseToPOData).
@@ -245,7 +242,7 @@ public class CaseParse {
         /**
          * 先从缓存SelectorCache中找，找不到再读取文件
          */
-        SelectorModel selectorModel = Model.getModel(selectorFileName, SelectorModel.class);
+        SelectorModel selectorModel = Model.getModel("", SelectorModel.class);
         Map<String, ElementSelectorModel> elementSelectorModel = selectorModel.getSelector(selectorName);
 
         /**
@@ -469,6 +466,15 @@ public class CaseParse {
                     return params.containsAll(dataList);
                 }
         );
+    }
+
+    private static CaseRunnable.DependFileName transformPageAndDataFileName(String caseFileName, UrlConfigModel urlConfigModel) {
+        String pageFileName = findCaseDependFile(urlConfigModel, caseFileName, PAGE);
+        String dataFileName = findCaseDependFile(urlConfigModel, caseFileName, DATA);
+        return CaseRunnable.DependFileName.builder().caseFileName(caseFileName).
+                pageFileName(pageFileName).
+                dataFileName(dataFileName).
+                build();
     }
 
     /**

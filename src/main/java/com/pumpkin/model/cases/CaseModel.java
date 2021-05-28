@@ -33,4 +33,5 @@ public class CaseModel implements Model {
      * 测试方法
      */
     private List<CaseInsensitiveMap<String, CaseMethodModel>> cases;
+
 }

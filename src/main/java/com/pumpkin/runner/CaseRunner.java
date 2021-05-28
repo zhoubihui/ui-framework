@@ -1,6 +1,5 @@
 package com.pumpkin.runner;
 
-import com.pumpkin.model.EnvModel;
 import com.pumpkin.runner.structure.*;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
@@ -28,7 +27,7 @@ public class CaseRunner {
          *  注意：345是循环执行
          */
         List<CaseStructure> cases = caseRunnable.getCases();
-        Env env = caseRunnable.getEnv();
+        CaseRunnable.Env env = caseRunnable.getEnv();
         if (cases.isEmpty())
             return;
 

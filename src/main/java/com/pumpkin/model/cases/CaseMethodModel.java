@@ -10,7 +10,7 @@ import java.util.List;
  * @className: CaseMethodModel
  * @description: TODO 类描述
  * @author: pumpkin
- * @date: 2021/5/21 10:24 下午
+ * @date: 2021/5/28 9:04 上午
  * @version: 1.0
  **/
 @Data
@@ -19,5 +19,4 @@ public class CaseMethodModel implements Model {
     private List<String> params;
     private List<String> steps;
     private List<CaseAssertModel> asserts;
-
 }

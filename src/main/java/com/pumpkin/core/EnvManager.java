@@ -1,6 +1,6 @@
 package com.pumpkin.core;
 
-import com.pumpkin.runner.structure.Env;
+import com.pumpkin.runner.CaseRunnable;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
 import java.util.HashMap;
@@ -43,7 +43,7 @@ public class EnvManager {
         return manager;
     }
 
-    public CaseInsensitiveMap<String, Object> getCaps(String caseFileName, Env env) {
+    public CaseInsensitiveMap<String, Object> getCaps(String caseFileName, CaseRunnable.Env env) {
         /**
          * 如果是APP，这里返回的是具体的caps
          */
@@ -64,7 +64,7 @@ public class EnvManager {
      * @param env
      * @return
      */
-    public boolean removeEnv(String caseFileName, Env env) {
+    public boolean removeEnv(String caseFileName, CaseRunnable.Env env) {
         return false;
     }
 
