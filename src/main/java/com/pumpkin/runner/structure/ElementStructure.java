@@ -19,7 +19,6 @@ import java.util.List;
 @Data
 @Builder
 public class ElementStructure implements Serializable {
-    private String selectorFileName;
     /**
      * 存储各个平台的定位方式
      */

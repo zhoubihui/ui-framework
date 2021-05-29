@@ -18,11 +18,4 @@ class CaseParseTest {
         CaseRunnable caseRunnable = CaseParse.parseCase("case/search/search-case.yaml", caseModel);
         System.out.println(caseRunnable);
     }
-
-    @Test
-    void findCaseDependFile() {
-        UrlConfigModel configModel = new UrlConfigModel().setPageUrl("page/search");
-        String caseDependFile = CaseParse.findCaseDependFile(configModel, "case/search/search-case.yaml", CaseParse.CaseDependFile.PAGE);
-        System.out.println(caseDependFile);
-    }
 }
