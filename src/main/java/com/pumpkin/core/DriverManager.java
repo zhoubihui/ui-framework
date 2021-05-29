@@ -40,7 +40,8 @@ public class DriverManager {
         Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().orElse(Platform.APP);
         switch (platform) {
             case APP:
-
+                break;
+            default:
         }
         return null;
     }

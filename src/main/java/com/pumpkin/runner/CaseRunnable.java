@@ -38,17 +38,6 @@ public class CaseRunnable implements Serializable {
      */
     private Env env;
 
-    private DependFileName dependFileName;
-
-    @Data
-    @Builder
-    public static class DependFileName {
-        private String caseFileName;
-        private String pageFileName;
-        private String selectorFileName;
-        private String dataFileName;
-    }
-
     @Data
     @Builder
     public static class Env {

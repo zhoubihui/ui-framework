@@ -14,8 +14,8 @@ class CaseParseTest {
 
     @Test
     void parseCase() {
-        CaseModel caseModel = Model.getModel("search-case", CaseModel.class);
-        CaseRunnable caseRunnable = CaseParse.parseCase("search-case", caseModel);
+        CaseModel caseModel = Model.getModel("case/search/search-case.yaml", CaseModel.class);
+        CaseRunnable caseRunnable = CaseParse.parseCase("case/search/search-case.yaml", caseModel);
         System.out.println(caseRunnable);
     }
 
@@ -24,17 +24,5 @@ class CaseParseTest {
         UrlConfigModel configModel = new UrlConfigModel().setPageUrl("page/search");
         String caseDependFile = CaseParse.findCaseDependFile(configModel, "case/search/search-case.yaml", CaseParse.CaseDependFile.PAGE);
         System.out.println(caseDependFile);
-    }
-
-    @Test
-    void file() {
-        String caseFileName = "case/search/search-case";
-        File file = new File(caseFileName);
-        System.out.println(file.getName());
-
-        Path path = Paths.get(caseFileName);
-        System.out.println(path.getFileName().toString());
-
-        System.out.println(FilenameUtils.getBaseName(caseFileName));
     }
 }

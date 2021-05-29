@@ -29,8 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.pumpkin.runner.CaseParse.CaseDependFile.DATA;
-import static com.pumpkin.runner.CaseParse.CaseDependFile.PAGE;
+import static com.pumpkin.runner.CaseParse.CaseDependFile.*;
 
 /**
  * @className: CaseParse
@@ -67,8 +66,8 @@ public class CaseParse {
         EnvModel envModel = caseModel.getEnv();
         UrlConfigModel configModel = caseModel.getConfig();
 
-        CaseRunnable.DependFileName dependFileName = transformPageAndDataFileName(caseFileName, configModel);
-        List<CaseStructure> caseStructures = cases.stream().map(c -> transformCase(caseFileName, c)).
+        List<CaseStructure> caseStructures = cases.stream().
+                map(caseStep -> transformCase(caseFileName, configModel, caseStep)).
                 collect(Collectors.toList());
 
         CaseRunnable.Env env = null;
@@ -79,18 +78,15 @@ public class CaseParse {
                 caseFileName(caseFileName).
                 cases(caseStructures).
                 env(env).
-                dependFileName(dependFileName).
                 build();
     }
-
-
 
     /**
      * 处理xxx-case.yaml中的methods下的每个method
      * 注意: case是关键字，所以这里变量改名为testCase
      * @param testCase
      */
-    private static CaseStructure transformCase(String caseFileName, Map<String, CaseMethodModel> testCase) {
+    private static CaseStructure transformCase(String caseFileName, UrlConfigModel configModel, Map<String, CaseMethodModel> testCase) {
         /**
          * 处理CaseModel.cases下的case
          * 1、校验case.steps中引用的参数是否在case.params中定义
@@ -115,7 +111,7 @@ public class CaseParse {
         verifyCaseMethodAssertsParams(caseFileName, caseMethodName, caseMethodModel.getParams(),
                 caseMethodModel.getAsserts());
 
-        CaseMethod caseMethod = transformCaseMethod(caseFileName, caseMethodName, caseMethodModel);
+        CaseMethod caseMethod = transformCaseMethod(caseFileName, caseMethodName, configModel.getPageUrl(), caseMethodModel);
 
         //3、处理参数,从xxx-data中读取参数来生成完整的测试用例
         //3-1、处理用例的参数
@@ -128,7 +124,7 @@ public class CaseParse {
      * 解析CaseMethodModel
      * @param caseMethodModel
      */
-    private static CaseMethod transformCaseMethod(String caseFileName, String caseMethodName, CaseMethodModel caseMethodModel) {
+    private static CaseMethod transformCaseMethod(String caseFileName, String caseMethodName, String pageUrl, CaseMethodModel caseMethodModel) {
         List<String> params = caseMethodModel.getParams();
         List<String> caseSteps = caseMethodModel.getSteps();
         List<CaseAssertModel> asserts = caseMethodModel.getAsserts();
@@ -144,7 +140,7 @@ public class CaseParse {
         Set<String> assertParams = asserts.stream().map(a -> splitParam(a.getExpected())).collect(Collectors.toSet());
 
         List<PageObjectStructure> pageObjectStructures = caseSteps.stream().
-                map(caseStep -> transformCaseStep(caseFileName, caseMethodName, caseStep)).
+                map(caseStep -> transformCaseStep(caseFileName, caseMethodName, pageUrl, caseStep)).
                 collect(Collectors.toList());
 
         List<Assert> assertList = asserts.stream().map(CaseParse::transformCaseAssert).collect(Collectors.toList());
@@ -171,7 +167,7 @@ public class CaseParse {
      * @param caseMethodName
      * @param step
      */
-    private static PageObjectStructure transformCaseStep(String caseFileName, String caseMethodName, String step) {
+    private static PageObjectStructure transformCaseStep(String caseFileName, String caseMethodName, String pageUrl, String step) {
         /**
          * 1、替换step中调用的PO方法
          * 2、读取PO方法体，校验case传递给PO的参数是否和PO中定义的参数格个数相同
@@ -180,6 +176,7 @@ public class CaseParse {
          */
         List<String> poMethods = splitFileAndMethod(step);
         String poFileName = poMethods.get(0);
+        String pageFileName = findDependFileName(pageUrl, poFileName);
         String poMethodName = poMethods.get(1);
         //case传给po的参数
         List<String> caseToPOData = splitMethodParam(step);
@@ -187,7 +184,7 @@ public class CaseParse {
         /**
          * 先从缓存PageCache中找，找不到再读取文件
          */
-        PageModel pageModel = Model.getModel("", PageModel.class);
+        PageModel pageModel = Model.getModel(pageFileName, PageModel.class);
         MethodModel methodModel = pageModel.getMethod(poMethodName);
 
         //po中定义的参数
@@ -197,7 +194,7 @@ public class CaseParse {
         verifyPOMethodParams(poFileName, poMethodName, params, methodModel.getSteps());
 
         List<ElementStructure> elementStructures = methodModel.getSteps().stream().
-                map(CaseParse::transformPOStep).
+                map(poStep -> transformPOStep("", poStep)).
                 collect(Collectors.toList());
 
         return PageObjectStructure.builder().
@@ -211,13 +208,13 @@ public class CaseParse {
      * @param poStep
      * @return
      */
-    private static ElementStructure transformPOStep(ElementModel poStep) {
+    private static ElementStructure transformPOStep(String selectorUrl, ElementModel poStep) {
         /**
          * 1、处理selector，从xxx-selector.yaml中读取全部平台的定位符，等到具体运行时再根据平台选择某一个定位符
          * 2、处理action
          * 3、处理data
          */
-        CaseInsensitiveMap<String, ElementSelector> elementSelectorMap = transformSelector(poStep.getSelector());
+        CaseInsensitiveMap<String, ElementSelector> elementSelectorMap = transformSelector(selectorUrl, poStep.getSelector());
         String action = poStep.getAction();
         List<String> data = poStep.getData();
 
@@ -234,15 +231,15 @@ public class CaseParse {
      * @param selector
      * @return
      */
-    private static CaseInsensitiveMap<String, ElementSelector> transformSelector(String selector) {
+    private static CaseInsensitiveMap<String, ElementSelector> transformSelector(String selectorUrl, String selector) {
         CaseInsensitiveMap<String, ElementSelector> elementSelectorMap = new CaseInsensitiveMap<>();
         List<String> poMethods = splitFileAndMethod(selector);
-        String selectorFileName = poMethods.get(0);
         String selectorName = poMethods.get(1);
+        String selectorFileName = findDependFileName(selectorUrl, selectorName);
         /**
          * 先从缓存SelectorCache中找，找不到再读取文件
          */
-        SelectorModel selectorModel = Model.getModel("", SelectorModel.class);
+        SelectorModel selectorModel = Model.getModel(selectorFileName, SelectorModel.class);
         Map<String, ElementSelectorModel> elementSelectorModel = selectorModel.getSelector(selectorName);
 
         /**
@@ -264,14 +261,14 @@ public class CaseParse {
 
     /**
      * 将参数替换case、中的模板参数，有多组参数则生成多个CaseMethod返回
-     * @param caseFileName
+     * @param dependFileName
      * @param caseMethod
      * @return
      */
-    private static List<CaseMethod> replaceCaseParam(String caseFileName, CaseMethod caseMethod) {
-        String dataFileName = null;
-                //findCaseDependFile(caseFileName, DATA);
+    private static List<CaseMethod> replaceCaseParam(String caseFileName, String dataUrl, CaseMethod caseMethod) {
+        String dataFileName = dependFileName.getDataFileName();
         List<CaseMethod> caseMethods = new ArrayList<>();
+        String caseFileName = dependFileName.getCaseFileName();
         /**
          * 先从缓存DataCache中找，找不到再读取文件
          */
@@ -468,40 +465,18 @@ public class CaseParse {
         );
     }
 
-    private static CaseRunnable.DependFileName transformPageAndDataFileName(String caseFileName, UrlConfigModel urlConfigModel) {
-        String pageFileName = findCaseDependFile(urlConfigModel, caseFileName, PAGE);
-        String dataFileName = findCaseDependFile(urlConfigModel, caseFileName, DATA);
-        return CaseRunnable.DependFileName.builder().caseFileName(caseFileName).
-                pageFileName(pageFileName).
-                dataFileName(dataFileName).
-                build();
-    }
-
     /**
-     * 转换case依赖的xxx-data、xxx-page、xxx-selector的文件名
-     * @param config
-     * @param caseFileName 传入的格式是相对路径，例如case/search/search-case
-     * @param caseDependFile
+     * 返回拼接好的page路径
+     * @param pageUrl case文件中定义的page路径
+     * @param poFileName case方法中引用的page文件名
      * @return
      */
-    public static String findCaseDependFile(UrlConfigModel config, String caseFileName, CaseDependFile caseDependFile) {
-        String caseFileBaseName = FilenameUtils.getBaseName(caseFileName);
-        int endIndex = caseFileBaseName.indexOf("-");
-        String dependBaseUrl = getCaseDependUrl(config, caseDependFile);
-        String prefix = caseFileBaseName.substring(0, endIndex + 1);
-        String dependFileName = prefix + caseDependFile.getSuffix();
-        return FileUtils.getFilePathFromDirectory(dependBaseUrl, dependFileName);
+    private static String findPageAndSelectorFileName(String pageUrl, String poFileName) {
+        return FileUtils.getFilePathFromDirectory(pageUrl, poFileName);
     }
 
-    /**
-     * 通过反射获取依赖文件路径
-     * @param configModel
-     * @param caseDependFile
-     * @return
-     */
-    private static String getCaseDependUrl(UrlConfigModel configModel, CaseDependFile caseDependFile) {
-        Field field = ReflectUtils.findField(configModel.getClass(), caseDependFile.getFieldName()).orElseThrow();
-        return ReflectUtils.getFieldValue(configModel, field).toString();
+    private static String findDataFileName(String caseFileName, String dataUrl) {
+        String caseBaseName = FilenameUtils.getBaseName(caseFileName);
     }
 
     enum CaseDependFile {
