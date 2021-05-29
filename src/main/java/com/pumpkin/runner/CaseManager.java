@@ -1,7 +1,7 @@
 package com.pumpkin.runner;
 
-import com.pumpkin.model.Model;
-import com.pumpkin.model.cases.CaseModel;
+import com.pumpkin.model.ICase;
+import com.pumpkin.model.IModel;
 
 /**
  * @className: CaseManager
@@ -41,7 +41,7 @@ public class CaseManager {
          * 1、需要在global-config.yaml中指定case的绝对路径
          * 2、通过commons-io包
          */
-        CaseModel caseModel = Model.getModel(caseFileName, CaseModel.class);
+        ICase.CaseModel caseModel = IModel.getModel(caseFileName, ICase.CaseModel.class);
         CaseRunnable caseRunnable = caseParse.parseCase(caseFileName, caseModel);
         /**
          * 1、放入缓存

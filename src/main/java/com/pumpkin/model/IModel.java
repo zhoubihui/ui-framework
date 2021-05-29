@@ -14,7 +14,7 @@ import java.io.IOException;
  * @date: 2021/5/21 9:08 上午
  * @version: 1.0
  **/
-public interface Model {
+public interface IModel {
     /**
      * 根据文件路径获取对应Model子类
      * @param fileName 传入的格式case/search-case.yaml，相对路径

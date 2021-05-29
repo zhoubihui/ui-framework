@@ -1,6 +1,6 @@
 package com.pumpkin.core;
 
-import com.pumpkin.model.config.AppConfigModel;
+import com.pumpkin.model.IConfig;
 import com.pumpkin.runner.CaseRunnable;
 import com.pumpkin.utils.YamlParse;
 import io.appium.java_client.remote.MobileCapabilityType;
@@ -22,10 +22,10 @@ public class PlatformConfigParse {
     private final static Logger log = LoggerFactory.getLogger(PlatformConfigParse.class);
 
     private final static String APP_CONFIG_PATH = "app-config.yaml";
-    private static AppConfigModel appConfig;
+    private static IConfig.AppConfigModel appConfig;
     static {
         try {
-            appConfig = YamlParse.readValue(APP_CONFIG_PATH, AppConfigModel.class);
+            appConfig = YamlParse.readValue(APP_CONFIG_PATH, IConfig.AppConfigModel.class);
         } catch (IOException e) {
             log.error("读取{}报错:\n{}", APP_CONFIG_PATH, e);
         }

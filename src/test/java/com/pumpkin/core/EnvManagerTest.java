@@ -1,7 +1,7 @@
 package com.pumpkin.core;
 
-import com.pumpkin.model.Model;
-import com.pumpkin.model.cases.CaseModel;
+import com.pumpkin.model.ICase;
+import com.pumpkin.model.IModel;
 import com.pumpkin.runner.CaseParse;
 import com.pumpkin.utils.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -11,7 +11,7 @@ class EnvManagerTest {
 
     @Test
     void getCaps() {
-        CaseModel caseModel = Model.getModel("order-case", CaseModel.class);
+        ICase.CaseModel caseModel = IModel.getModel("order-case", ICase.CaseModel.class);
         CaseParse.parseCase("order-case", caseModel);
         EnvManager manager = EnvManager.getInstance();
     }

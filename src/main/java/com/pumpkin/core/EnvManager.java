@@ -1,12 +1,10 @@
 package com.pumpkin.core;
 
-import com.pumpkin.model.EnvModel;
-import com.pumpkin.model.Model;
+import com.pumpkin.model.IPublic;
+import com.pumpkin.model.IModel;
 import com.pumpkin.runner.CaseRunnable;
 import com.pumpkin.runner.structure.EnvAndCaps;
 import com.pumpkin.utils.FileUtils;
-import lombok.Builder;
-import lombok.Data;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +31,6 @@ public class EnvManager {
      * 234、存储到Map中，其中23存储时key是目录的名称?(或路径),4待确定
      */
     private Map<String, EnvAndCaps> capsMap;
-    private Map<String, CaseFileRecord> caseFileRecordMap;
     private final static String ENV_CONFIG = "env-config";
 
     private EnvManager() {
@@ -79,7 +76,7 @@ public class EnvManager {
         /**
          * 缓存中不存在则从文件中读取
          */
-        EnvModel envModel = Model.getModel(envFileName, EnvModel.class);
+        IPublic.EnvModel envModel = IModel.getModel(envFileName, IPublic.EnvModel.class);
         CaseRunnable.Env newEnv = CaseRunnable.Env.builder().platform(envModel.getPlatform()).
                 targetApp(envModel.getTargetApp()).build();
         config = PlatformConfigParse.getConfig(newEnv);
@@ -98,16 +95,5 @@ public class EnvManager {
     public boolean removeEnv(String caseFileName, CaseRunnable.Env env) {
         //怎么移除
         return false;
-    }
-
-    /**
-     * caseFileNames: 存储执行过的case，用来确定目录下的case文件是否都执行完了
-     * caseFileTotal: 目录下的case文件总数
-     */
-    @Data
-    @Builder
-    class CaseFileRecord {
-        private List<String> caseFileNames;
-        private int caseFileTotal;
     }
 }

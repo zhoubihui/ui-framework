@@ -1,16 +1,12 @@
 package com.pumpkin.core;
 
-import com.pumpkin.model.config.GlobalConfigModel;
+import com.pumpkin.model.IConfig;
 import org.junit.jupiter.api.Test;
-
-import java.net.URL;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class GlobalConfigParseTest {
     @Test
     void getGlobalConfig() {
-        GlobalConfigModel globalConfig = GlobalConfigParse.getGlobalConfig();
+        IConfig.GlobalConfigModel globalConfig = GlobalConfigParse.getGlobalConfig();
         System.out.println(globalConfig);
     }
 }

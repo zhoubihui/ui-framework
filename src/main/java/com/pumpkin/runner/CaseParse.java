@@ -3,28 +3,15 @@ package com.pumpkin.runner;
 import com.pumpkin.exception.CallCaseMethodException;
 import com.pumpkin.exception.CallPOMethodException;
 import com.pumpkin.exception.NotMatchParameterException;
-import com.pumpkin.model.EnvModel;
-import com.pumpkin.model.Model;
-import com.pumpkin.model.UrlConfigModel;
-import com.pumpkin.model.cases.CaseAssertModel;
-import com.pumpkin.model.cases.CaseMethodModel;
-import com.pumpkin.model.cases.CaseModel;
-import com.pumpkin.model.data.DataModel;
-import com.pumpkin.model.page.ElementModel;
-import com.pumpkin.model.page.MethodModel;
-import com.pumpkin.model.page.PageModel;
-import com.pumpkin.model.selector.ElementSelectorModel;
-import com.pumpkin.model.selector.SelectorModel;
+import com.pumpkin.model.*;
 import com.pumpkin.runner.structure.*;
 import com.pumpkin.utils.ExceptionUtils;
 import com.pumpkin.utils.FileUtils;
-import com.pumpkin.utils.ReflectUtils;
 import com.pumpkin.utils.StringUtils;
 import com.rits.cloning.Cloner;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.io.FilenameUtils;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,7 +36,7 @@ public class CaseParse {
      * @param caseModel
      * @return
      */
-    public static CaseRunnable parseCase(String caseFileName, CaseModel caseModel) {
+    public static CaseRunnable parseCase(String caseFileName, ICase.CaseModel caseModel) {
         /**
          * 1、遍历@BeforeAll方法
          * 2、遍历@BeforeEach方法
@@ -62,9 +49,9 @@ public class CaseParse {
          *  将来还可以做某个case忽略指定的生命周期方法
          * 6、处理env环境配置问题
          */
-        List<CaseInsensitiveMap<String, CaseMethodModel>> cases = caseModel.getCases();
-        EnvModel envModel = caseModel.getEnv();
-        UrlConfigModel configModel = caseModel.getConfig();
+        List<CaseInsensitiveMap<String, ICase.CaseMethodModel>> cases = caseModel.getCases();
+        IPublic.EnvModel envModel = caseModel.getEnv();
+        IPublic.UrlConfigModel configModel = caseModel.getConfig();
 
         List<CaseStructure> caseStructures = cases.stream().
                 map(caseStep -> transformCase(caseFileName, configModel, caseStep)).
@@ -86,7 +73,8 @@ public class CaseParse {
      * 注意: case是关键字，所以这里变量改名为testCase
      * @param testCase
      */
-    private static CaseStructure transformCase(String caseFileName, UrlConfigModel configModel, Map<String, CaseMethodModel> testCase) {
+    private static CaseStructure transformCase(String caseFileName, IPublic.UrlConfigModel configModel,
+                                               Map<String, ICase.CaseMethodModel> testCase) {
         /**
          * 处理CaseModel.cases下的case
          * 1、校验case.steps中引用的参数是否在case.params中定义
@@ -101,9 +89,9 @@ public class CaseParse {
          *      4) xxx-page的po方法的params在xxx-case.steps中调用该po方法时传入，params定义的参数都需要从case中传入
          */
 
-        Map.Entry<String, CaseMethodModel> entry = testCase.entrySet().iterator().next();
+        Map.Entry<String, ICase.CaseMethodModel> entry = testCase.entrySet().iterator().next();
         String caseMethodName = entry.getKey();
-        CaseMethodModel caseMethodModel = entry.getValue();
+        ICase.CaseMethodModel caseMethodModel = entry.getValue();
 
         //校验参数
         verifyCaseMethodStepsParams(caseFileName, caseMethodName, caseMethodModel.getParams(),
@@ -124,10 +112,12 @@ public class CaseParse {
      * 解析CaseMethodModel
      * @param caseMethodModel
      */
-    private static CaseMethod transformCaseMethod(String caseFileName, String caseMethodName, UrlConfigModel configModel, CaseMethodModel caseMethodModel) {
+    private static CaseMethod transformCaseMethod(String caseFileName, String caseMethodName,
+                                                  IPublic.UrlConfigModel configModel,
+                                                  ICase.CaseMethodModel caseMethodModel) {
         List<String> params = caseMethodModel.getParams();
         List<String> caseSteps = caseMethodModel.getSteps();
-        List<CaseAssertModel> asserts = caseMethodModel.getAsserts();
+        List<ICase.CaseAssertModel> asserts = caseMethodModel.getAsserts();
         /**
          * 1、获取steps中引用的全部参数
          * 2、获取asserts中的expected引用的全部参数
@@ -184,8 +174,8 @@ public class CaseParse {
         /**
          * 先从缓存PageCache中找，找不到再读取文件
          */
-        PageModel pageModel = Model.getModel(pageFileName, PageModel.class);
-        MethodModel methodModel = pageModel.getMethod(poMethodName);
+        IPage.PageModel pageModel = IModel.getModel(pageFileName, IPage.PageModel.class);
+        IPage.MethodModel methodModel = pageModel.getMethod(poMethodName);
 
         //po中定义的参数
         List<String> params = methodModel.getParams();
@@ -208,7 +198,7 @@ public class CaseParse {
      * @param poStep
      * @return
      */
-    private static ElementStructure transformPOStep(String selectorUrl, ElementModel poStep) {
+    private static ElementStructure transformPOStep(String selectorUrl, IPage.ElementModel poStep) {
         /**
          * 1、处理selector，从xxx-selector.yaml中读取全部平台的定位符，等到具体运行时再根据平台选择某一个定位符
          * 2、处理action
@@ -239,8 +229,8 @@ public class CaseParse {
         /**
          * 先从缓存SelectorCache中找，找不到再读取文件
          */
-        SelectorModel selectorModel = Model.getModel(selectorFileName, SelectorModel.class);
-        Map<String, ElementSelectorModel> elementSelectorModel = selectorModel.getSelector(selectorName);
+        ISelector.SelectorModel selectorModel = IModel.getModel(selectorFileName, ISelector.SelectorModel.class);
+        Map<String, ISelector.ElementSelectorModel> elementSelectorModel = selectorModel.getSelector(selectorName);
 
         /**
          * 把多个平台的定位符，都存起来，到真正运行case时再根据driver获取对应平台的定位符
@@ -255,7 +245,7 @@ public class CaseParse {
         return elementSelectorMap;
     }
 
-    private static Assert transformCaseAssert(CaseAssertModel caseAssertModel) {
+    private static Assert transformCaseAssert(ICase.CaseAssertModel caseAssertModel) {
         return null;
     }
 
@@ -271,7 +261,7 @@ public class CaseParse {
         /**
          * 先从缓存DataCache中找，找不到再读取文件
          */
-        DataModel dataModel = Model.getModel(dataFileName, DataModel.class);
+        IData.DataModel dataModel = IModel.getModel(dataFileName, IData.DataModel.class);
         Map<String, List<Object>> methodData = dataModel.getMethodData(caseMethod.getName());
 
         /**
@@ -373,7 +363,8 @@ public class CaseParse {
      * 注意：目前只支持期望值判断
      */
     private static void verifyCaseMethodAssertsParams(String caseFileName, String caseMethodName,
-                                               List<String> params, List<CaseAssertModel> asserts) {
+                                                      List<String> params,
+                                                      List<ICase.CaseAssertModel> asserts) {
         if (!isTrueCaseMethodAssertsParams(params, asserts))
             ExceptionUtils.throwAsUncheckedException(
                     new NotMatchParameterException(caseFileName, caseMethodName)
@@ -384,7 +375,7 @@ public class CaseParse {
      * 校验po方法内引用的变量是否在params部分定义，任一个不满足抛异常
      */
     private static void verifyPOMethodParams(String poFileName, String poMethodName,
-                                      List<String> params, List<ElementModel> poSteps) {
+                                      List<String> params, List<IPage.ElementModel> poSteps) {
         if (!isTruePOMethodParams(params, poSteps))
             ExceptionUtils.throwAsUncheckedException(
                     new NotMatchParameterException(poFileName, poMethodName)
@@ -438,7 +429,7 @@ public class CaseParse {
      * @param asserts
      * @return
      */
-    private static boolean isTrueCaseMethodAssertsParams(List<String> params, List<CaseAssertModel> asserts) {
+    private static boolean isTrueCaseMethodAssertsParams(List<String> params, List<ICase.CaseAssertModel> asserts) {
         return asserts.stream().allMatch(
                 a -> {
                     String param = splitParam(a.getExpected());
@@ -453,7 +444,7 @@ public class CaseParse {
      * @param poSteps
      * @return
      */
-    private static boolean isTruePOMethodParams(List<String> params, List<ElementModel> poSteps) {
+    private static boolean isTruePOMethodParams(List<String> params, List<IPage.ElementModel> poSteps) {
         return poSteps.stream().allMatch(
                 e -> {
                     if (Objects.isNull(e.getData()))

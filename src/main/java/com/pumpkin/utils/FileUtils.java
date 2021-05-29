@@ -1,17 +1,12 @@
 package com.pumpkin.utils;
 
-import com.pumpkin.model.cases.CaseModel;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @className: FileUtils
