@@ -1,13 +1,17 @@
 package com.pumpkin.utils;
 
+import com.pumpkin.model.cases.CaseModel;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @className: FileUtils
@@ -33,12 +37,12 @@ public class FileUtils {
      * @param relativelyPath
      * @return
      */
-    private static String getResource(String relativelyPath) {
+    public static String getResource(String relativelyPath) {
         return ClassLoader.getSystemClassLoader().getResource(relativelyPath).getPath();
     }
 
     /**
-     * 从指定目录下查找文件名和fileName匹配的文件路径
+     * 从指定目录下查找文件名和fileName匹配的文件路径,只查找当前目录
      * @param relativelyDirectoryPath 相对路径的目录
      * @param fileName
      * @return
@@ -46,8 +50,8 @@ public class FileUtils {
     public static String getFilePathFromDirectory(String relativelyDirectoryPath, String fileName) {
         Collection<File> files = org.apache.commons.io.FileUtils.listFiles(
                 new File(getResource(relativelyDirectoryPath)),
-                new NameFilter(fileName),
-                TrueFileFilter.INSTANCE);
+                new NameEqualFilter(fileName),
+                null);
         Optional<String> first = files.stream().map(File::getAbsolutePath).findFirst();
         if (first.isPresent()) {
             String absolutePath = first.get();
@@ -58,9 +62,9 @@ public class FileUtils {
         return "";
     }
 
-    static class NameFilter extends AbstractFileFilter {
+    static class NameEqualFilter extends AbstractFileFilter {
         private final String name;
-        NameFilter(String name) {
+        NameEqualFilter(String name) {
             this.name = name;
         }
 

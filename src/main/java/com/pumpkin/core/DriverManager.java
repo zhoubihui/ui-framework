@@ -1,6 +1,7 @@
 package com.pumpkin.core;
 
 import com.pumpkin.runner.CaseRunnable;
+import com.pumpkin.runner.structure.EnvAndCaps;
 import io.appium.java_client.remote.MobileCapabilityType;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.openqa.selenium.WebDriver;
@@ -35,14 +36,33 @@ public class DriverManager {
     }
 
     public WebDriver getDriver(String caseFileName, CaseRunnable.Env env) {
-        CaseInsensitiveMap<String, Object> caps = EnvManager.getInstance().getCaps(caseFileName, env);
-        String platformName = (String) caps.get(MobileCapabilityType.PLATFORM_NAME);
+        WebDriver driver = null;
+        EnvAndCaps envAndCaps = EnvManager.getInstance().getCaps(caseFileName, env);
+        String platformName = envAndCaps.getEnv().getPlatform();
         Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().orElse(Platform.APP);
         switch (platform) {
             case APP:
+                String targetApp = envAndCaps.getEnv().getTargetApp();
+                driver = driverMap.get(initAppKey(platformName, targetApp));
+                if (Objects.nonNull(driver))
+                    return driver;
+
                 break;
             default:
         }
+        return null;
+    }
+
+    private String initAppKey(String platform, String targetApp) {
+        return platform + "-" + targetApp;
+    }
+
+    /**
+     * 根据caps创建driver实例
+     * @param caps
+     * @return
+     */
+    private WebDriver initAppDriver(CaseInsensitiveMap<String, Object> caps) {
         return null;
     }
 }

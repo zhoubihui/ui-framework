@@ -1,12 +1,17 @@
 package com.pumpkin.core;
 
+import com.pumpkin.model.EnvModel;
+import com.pumpkin.model.Model;
 import com.pumpkin.runner.CaseRunnable;
+import com.pumpkin.runner.structure.EnvAndCaps;
+import com.pumpkin.utils.FileUtils;
+import lombok.Builder;
+import lombok.Data;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @className: EnvManager
@@ -27,9 +32,9 @@ public class EnvManager {
      * 1、当前case文件中定义的，不存储到Map，因为只能用于本文件
      * 234、存储到Map中，其中23存储时key是目录的名称?(或路径),4待确定
      */
-    private Map<String, CaseInsensitiveMap<String, Object>> capsMap;
-
+    private Map<String, EnvAndCaps> capsMap;
     private Map<String, CaseFileRecord> caseFileRecordMap;
+    private final static String ENV_CONFIG = "env-config";
 
     private EnvManager() {
         capsMap = new HashMap<>();
@@ -43,19 +48,45 @@ public class EnvManager {
         return manager;
     }
 
-    public CaseInsensitiveMap<String, Object> getCaps(String caseFileName, CaseRunnable.Env env) {
+    public EnvAndCaps getCaps(String caseFileName, CaseRunnable.Env env) {
         /**
          * 如果是APP，这里返回的是具体的caps
          */
         CaseInsensitiveMap<String, Object> config = null;
         if (Objects.nonNull(env)) {
             config = PlatformConfigParse.getConfig(env);
+            return EnvAndCaps.builder().env(env).caps(config).build();
         }
         /**
          * 234的步骤查找
          * 同样的问题：文件路径如何确定？其实只需要知道相对路径就可以了
          */
-        return config;
+        String parentDirectory = caseFileName;
+        String envFileName = "";
+        while (StringUtils.isNotBlank((parentDirectory = FilenameUtils.getPathNoEndSeparator(parentDirectory)))) {
+            envFileName = FileUtils.getFilePathFromDirectory(parentDirectory, ENV_CONFIG);
+            if (StringUtils.isNotBlank(envFileName))
+                break;
+        }
+        if (StringUtils.isNotBlank(envFileName)) {
+            envFileName = FileUtils.getFilePathFromDirectory("", ENV_CONFIG);
+            parentDirectory = "root";
+        }
+        EnvAndCaps envAndCaps = capsMap.get(parentDirectory);
+        if (Objects.nonNull(envAndCaps))
+            return envAndCaps;
+
+        /**
+         * 缓存中不存在则从文件中读取
+         */
+        EnvModel envModel = Model.getModel(envFileName, EnvModel.class);
+        CaseRunnable.Env newEnv = CaseRunnable.Env.builder().platform(envModel.getPlatform()).
+                targetApp(envModel.getTargetApp()).build();
+        config = PlatformConfigParse.getConfig(newEnv);
+        envAndCaps = EnvAndCaps.builder().env(newEnv).caps(config).build();
+        capsMap.put(parentDirectory, envAndCaps);
+
+        return envAndCaps;
     }
 
     /**
@@ -65,6 +96,7 @@ public class EnvManager {
      * @return
      */
     public boolean removeEnv(String caseFileName, CaseRunnable.Env env) {
+        //怎么移除
         return false;
     }
 
@@ -72,6 +104,8 @@ public class EnvManager {
      * caseFileNames: 存储执行过的case，用来确定目录下的case文件是否都执行完了
      * caseFileTotal: 目录下的case文件总数
      */
+    @Data
+    @Builder
     class CaseFileRecord {
         private List<String> caseFileNames;
         private int caseFileTotal;
