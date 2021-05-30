@@ -36,7 +36,7 @@ public class CaseParse {
      * @param caseModel
      * @return
      */
-    public static CaseRunnable parseCase(String caseFileName, ICase.CaseModel caseModel) {
+    public static ICaseRunnable.CaseRunnable parseCase(String caseFileName, ICase.CaseModel caseModel) {
         /**
          * 1、遍历@BeforeAll方法
          * 2、遍历@BeforeEach方法
@@ -53,15 +53,15 @@ public class CaseParse {
         IPublic.EnvModel envModel = caseModel.getEnv();
         IPublic.UrlConfigModel configModel = caseModel.getConfig();
 
-        List<CaseStructure> caseStructures = cases.stream().
+        List<ICaseRunnable.CaseStructure> caseStructures = cases.stream().
                 map(caseStep -> transformCase(caseFileName, configModel, caseStep)).
                 collect(Collectors.toList());
 
-        CaseRunnable.Env env = null;
+        ICaseRunnable.Env env = null;
         if (Objects.nonNull(envModel))
-            env = CaseRunnable.Env.builder().platform(envModel.getPlatform()).targetApp(envModel.getTargetApp()).build();
+            env = ICaseRunnable.Env.builder().platform(envModel.getPlatform()).targetApp(envModel.getTargetApp()).build();
 
-        return CaseRunnable.builder().
+        return ICaseRunnable.CaseRunnable.builder().
                 caseFileName(caseFileName).
                 cases(caseStructures).
                 env(env).
@@ -73,8 +73,8 @@ public class CaseParse {
      * 注意: case是关键字，所以这里变量改名为testCase
      * @param testCase
      */
-    private static CaseStructure transformCase(String caseFileName, IPublic.UrlConfigModel configModel,
-                                               Map<String, ICase.CaseMethodModel> testCase) {
+    private static ICaseRunnable.CaseStructure transformCase(String caseFileName, IPublic.UrlConfigModel configModel,
+                                                             Map<String, ICase.CaseMethodModel> testCase) {
         /**
          * 处理CaseModel.cases下的case
          * 1、校验case.steps中引用的参数是否在case.params中定义
@@ -99,22 +99,22 @@ public class CaseParse {
         verifyCaseMethodAssertsParams(caseFileName, caseMethodName, caseMethodModel.getParams(),
                 caseMethodModel.getAsserts());
 
-        CaseMethod caseMethod = transformCaseMethod(caseFileName, caseMethodName, configModel, caseMethodModel);
+        ICaseRunnable.CaseMethod caseMethod = transformCaseMethod(caseFileName, caseMethodName, configModel, caseMethodModel);
 
         //3、处理参数,从xxx-data中读取参数来生成完整的测试用例
         //3-1、处理用例的参数
-        List<CaseMethod> caseMethods = replaceCaseParam(caseFileName, configModel.getDataUrl(), caseMethod);
+        List<ICaseRunnable.CaseMethod> caseMethods = replaceCaseParam(caseFileName, configModel.getDataUrl(), caseMethod);
 
-        return CaseStructure.builder().cases(caseMethods).build();
+        return ICaseRunnable.CaseStructure.builder().cases(caseMethods).build();
     }
 
     /**
      * 解析CaseMethodModel
      * @param caseMethodModel
      */
-    private static CaseMethod transformCaseMethod(String caseFileName, String caseMethodName,
-                                                  IPublic.UrlConfigModel configModel,
-                                                  ICase.CaseMethodModel caseMethodModel) {
+    private static ICaseRunnable.CaseMethod transformCaseMethod(String caseFileName, String caseMethodName,
+                                                                IPublic.UrlConfigModel configModel,
+                                                                ICase.CaseMethodModel caseMethodModel) {
         List<String> params = caseMethodModel.getParams();
         List<String> caseSteps = caseMethodModel.getSteps();
         List<ICase.CaseAssertModel> asserts = caseMethodModel.getAsserts();
@@ -129,18 +129,18 @@ public class CaseParse {
                 collect(Collectors.toSet());
         Set<String> assertParams = asserts.stream().map(a -> splitParam(a.getExpected())).collect(Collectors.toSet());
 
-        List<PageObjectStructure> pageObjectStructures = caseSteps.stream().
+        List<ICaseRunnable.PageObjectStructure> pageObjectStructures = caseSteps.stream().
                 map(caseStep -> transformCaseStep(caseFileName, caseMethodName, configModel.getPageUrl(), caseStep)).
                 collect(Collectors.toList());
 
-        List<Assert> assertList = asserts.stream().map(CaseParse::transformCaseAssert).collect(Collectors.toList());
+        List<ICaseRunnable.Assert> assertList = asserts.stream().map(CaseParse::transformCaseAssert).collect(Collectors.toList());
 
         CaseInsensitiveMap<String, Object> caseTrueData = new CaseInsensitiveMap<>();
         caseParams.forEach(p -> caseTrueData.put(p, PRESENT));
         CaseInsensitiveMap<String, Object> assertTrueData = new CaseInsensitiveMap<>();
         assertParams.forEach(p -> assertTrueData.put(p, PRESENT));
 
-        return CaseMethod.builder().params(params).name(caseMethodName).
+        return ICaseRunnable.CaseMethod.builder().params(params).name(caseMethodName).
                 caseParams(caseParams).caseTrueData(caseTrueData).
                 assertParams(assertParams).assertTrueData(assertTrueData).
                 caseSteps(pageObjectStructures).
@@ -157,7 +157,7 @@ public class CaseParse {
      * @param caseMethodName
      * @param step
      */
-    private static PageObjectStructure transformCaseStep(String caseFileName, String caseMethodName, String pageUrl, String step) {
+    private static ICaseRunnable.PageObjectStructure transformCaseStep(String caseFileName, String caseMethodName, String pageUrl, String step) {
         /**
          * 1、替换step中调用的PO方法
          * 2、读取PO方法体，校验case传递给PO的参数是否和PO中定义的参数格个数相同
@@ -183,11 +183,11 @@ public class CaseParse {
 
         verifyPOMethodParams(poName, poMethodName, params, methodModel.getSteps());
 
-        List<ElementStructure> elementStructures = methodModel.getSteps().stream().
+        List<ICaseRunnable.ElementStructure> elementStructures = methodModel.getSteps().stream().
                 map(poStep -> transformPOStep(pageModel.getConfig().getSelectorUrl(), poStep)).
                 collect(Collectors.toList());
 
-        return PageObjectStructure.builder().
+        return ICaseRunnable.PageObjectStructure.builder().
                 pageFileName(pageFileName).name(poMethodName).
                 params(params).caseToPOParams(caseToPOData).
                 poSteps(elementStructures).build();
@@ -198,13 +198,13 @@ public class CaseParse {
      * @param poStep
      * @return
      */
-    private static ElementStructure transformPOStep(String selectorUrl, IPage.ElementModel poStep) {
+    private static ICaseRunnable.ElementStructure transformPOStep(String selectorUrl, IPage.ElementModel poStep) {
         /**
          * 1、处理selector，从xxx-selector.yaml中读取全部平台的定位符，等到具体运行时再根据平台选择某一个定位符
          * 2、处理action
          * 3、处理data
          */
-        CaseInsensitiveMap<String, ElementSelector> elementSelectorMap = transformSelector(selectorUrl, poStep.getSelector());
+        CaseInsensitiveMap<String, ICaseRunnable.ElementSelector> elementSelectorMap = transformSelector(selectorUrl, poStep.getSelector());
         String action = poStep.getAction();
         List<String> data = poStep.getData();
 
@@ -213,7 +213,7 @@ public class CaseParse {
             dataTemp = data.stream().map(CaseParse::splitParam).collect(Collectors.toList());
         else
             dataTemp = Collections.emptyList();
-        return ElementStructure.builder().selectors(elementSelectorMap).action(action).data(dataTemp).build();
+        return ICaseRunnable.ElementStructure.builder().selectors(elementSelectorMap).action(action).data(dataTemp).build();
     }
 
     /**
@@ -221,8 +221,8 @@ public class CaseParse {
      * @param selector
      * @return
      */
-    private static CaseInsensitiveMap<String, ElementSelector> transformSelector(String selectorUrl, String selector) {
-        CaseInsensitiveMap<String, ElementSelector> elementSelectorMap = new CaseInsensitiveMap<>();
+    private static CaseInsensitiveMap<String, ICaseRunnable.ElementSelector> transformSelector(String selectorUrl, String selector) {
+        CaseInsensitiveMap<String, ICaseRunnable.ElementSelector> elementSelectorMap = new CaseInsensitiveMap<>();
         List<String> poMethods = splitFileAndMethod(selector);
         String selectorName = poMethods.get(1);
         String selectorFileName = findPageAndSelectorFileName(selectorUrl, poMethods.get(0));
@@ -236,7 +236,7 @@ public class CaseParse {
          * 把多个平台的定位符，都存起来，到真正运行case时再根据driver获取对应平台的定位符
          */
         elementSelectorModel.forEach((key, temp) -> {
-            ElementSelector elementSelector = ElementSelector.builder().
+            ICaseRunnable.ElementSelector elementSelector = ICaseRunnable.ElementSelector.builder().
                     strategy(temp.getStrategy()).selector(temp.getSelector()).
                     index(temp.getIndex()).multiple(temp.isMultiple()).
                     build();
@@ -245,7 +245,7 @@ public class CaseParse {
         return elementSelectorMap;
     }
 
-    private static Assert transformCaseAssert(ICase.CaseAssertModel caseAssertModel) {
+    private static ICaseRunnable.Assert transformCaseAssert(ICase.CaseAssertModel caseAssertModel) {
         return null;
     }
 
@@ -255,9 +255,9 @@ public class CaseParse {
      * @param caseMethod
      * @return
      */
-    private static List<CaseMethod> replaceCaseParam(String caseFileName, String dataUrl, CaseMethod caseMethod) {
+    private static List<ICaseRunnable.CaseMethod> replaceCaseParam(String caseFileName, String dataUrl, ICaseRunnable.CaseMethod caseMethod) {
         String dataFileName = findDataFileName(dataUrl, caseFileName);
-        List<CaseMethod> caseMethods = new ArrayList<>();
+        List<ICaseRunnable.CaseMethod> caseMethods = new ArrayList<>();
         /**
          * 先从缓存DataCache中找，找不到再读取文件
          */
@@ -282,7 +282,7 @@ public class CaseParse {
         int dataMinLength = caseParams.stream().map(p -> methodData.get(p).size()).sorted().findFirst().orElse(0);
         Stream.iterate(0, index -> index + 1).limit(dataMinLength).forEach(
                 index -> {
-                    CaseMethod temp = CLONER.deepClone(caseMethod);
+                    ICaseRunnable.CaseMethod temp = CLONER.deepClone(caseMethod);
                     CaseInsensitiveMap<String, Object> caseTrueData = temp.getCaseTrueData();
                     caseTrueData.keySet().forEach(
                          key -> {

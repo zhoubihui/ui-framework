@@ -1,7 +1,7 @@
 package com.pumpkin.core;
 
 import com.pumpkin.model.IConfig;
-import com.pumpkin.runner.CaseRunnable;
+import com.pumpkin.runner.ICaseRunnable;
 import com.pumpkin.utils.YamlParse;
 import io.appium.java_client.remote.MobileCapabilityType;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
@@ -31,7 +31,7 @@ public class PlatformConfigParse {
         }
     }
 
-    public static CaseInsensitiveMap<String, Object> getConfig(CaseRunnable.Env env) {
+    public static CaseInsensitiveMap<String, Object> getConfig(ICaseRunnable.Env env) {
         CaseInsensitiveMap<String, Object> config = null;
         String platformName = env.getPlatform();
 

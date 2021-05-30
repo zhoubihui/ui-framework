@@ -32,7 +32,7 @@ public class CaseManager {
      * @param caseFileName 举例：case/search-case.yaml
      * @return
      */
-    public CaseRunnable getCase(String caseFileName) {
+    public ICaseRunnable.CaseRunnable getCase(String caseFileName) {
         CaseParse caseParse = new CaseParse();
         //1、先从缓存中找，缓存中有即返回
         //2、缓存中没有，从硬盘读取对应文件并解析
@@ -42,7 +42,7 @@ public class CaseManager {
          * 2、通过commons-io包
          */
         ICase.CaseModel caseModel = IModel.getModel(caseFileName, ICase.CaseModel.class);
-        CaseRunnable caseRunnable = caseParse.parseCase(caseFileName, caseModel);
+        ICaseRunnable.CaseRunnable caseRunnable = caseParse.parseCase(caseFileName, caseModel);
         /**
          * 1、放入缓存
          * 2、CaseRunner执行CaseRunnable
