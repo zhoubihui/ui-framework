@@ -4,8 +4,9 @@ base: # app的基本设置
     url: http://127.0.0.1:4723/wd/hub
     enabledTransformXpath: true # 开启后，Android下的xpath查找，如果是支持解析的语法，就转成UiSelector的语法查询
     enabledScroll: true # 开启后，查找不到元素时会尝试滑动后查找
+    enableHandleException: true # 开启后，查找不到元素时会做通用异常处理
     enabledReplace: true # 开启后，sendKeys前会先清空输入框
-    enabledMethodLog: true # 开启后，进入每个方法时都会打印具体的方法名和方法参数
+    enabledMethodLog: false # 开启后，进入每个方法时都会打印具体的方法名和方法参数
   caps: # 具体app的caps覆盖全局的caps
     noReset: false
     unicodeKeyboard: true
@@ -20,6 +21,15 @@ app:
         appPackage: com.tencent.wework
         appActivity: .launch.WwMainActivity
         noReset: true
+    xueqiu:
+      config:
+        blackList: [(id,tb_agree),(id,ib_close)]
+        enabledMethodLog: true
+      caps:
+        appPackage: com.xueqiu.android
+        appActivity: .view.WelcomeActivityAlias
+        noReset: true
+
   iOS:
     UICatalog:
       caps:

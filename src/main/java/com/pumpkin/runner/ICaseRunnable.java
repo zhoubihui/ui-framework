@@ -2,6 +2,7 @@ package com.pumpkin.runner;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.Tolerate;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.hamcrest.Matchers;
 
@@ -173,16 +174,29 @@ public interface ICaseRunnable {
 
     @Data
     @Builder
-    class Env {
+    class Env implements Serializable {
         private String platform;
         private String targetApp;
     }
 
     @Data
     @Builder
-    class EnvConfig {
+    class EnvConfig implements Serializable {
         private ICaseRunnable.Env env;
-        private CaseInsensitiveMap<String, Object> config;
+        private Config config;
+        private String platformName;
         private CaseInsensitiveMap<String, Object> caps;
+    }
+
+    @Data
+    @Builder
+    class Config implements Serializable {
+        private String url;
+        private boolean enabledTransformXpath;
+        private boolean enabledScroll;
+        private boolean enabledReplace;
+        private boolean enabledMethodLog;
+        private boolean enableHandleException;
+        private List<String> blackList;
     }
 }

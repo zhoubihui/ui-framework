@@ -1,8 +1,10 @@
 package com.pumpkin.utils;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -24,14 +26,12 @@ public class ReflectUtils {
      * @param argsType
      * @return
      */
-    public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class<?>... argsType) {
-        Method method = null;
+    public static Method findMethod(Class<?> clazz, String methodName, Class<?>... argsType) {
         try {
-            method = clazz.getDeclaredMethod(methodName, argsType);
+            return clazz.getDeclaredMethod(methodName, argsType);
         } catch (NoSuchMethodException e) {
-            ExceptionUtils.throwAsUncheckedException(e);
+            throw ExceptionUtils.throwAsUncheckedException(e);
         }
-        return Optional.ofNullable(method);
     }
 
     /**
@@ -58,41 +58,6 @@ public class ReflectUtils {
         return method;
     }
 
-    /**
-     * 获取对应属性
-     * @param clazz
-     * @param fieldName
-     * @return
-     */
-    public static Optional<Field> findField(Class<?> clazz, String fieldName) {
-        Field field = null;
-        try {
-            field = clazz.getDeclaredField(fieldName);
-        } catch (NoSuchFieldException e) {
-            ExceptionUtils.throwAsUncheckedException(e);
-        }
-        return Optional.ofNullable(field);
-    }
-
-    /**
-     * 获取字段的值
-     * @param obj
-     * @param field
-     * @return
-     */
-    public static Object getFieldValue(Object obj, Field field) {
-        try {
-            return makeAccessible(field).get(obj);
-        } catch (IllegalAccessException e) {
-            throw ExceptionUtils.throwAsUncheckedException(e);
-        }
-    }
-
-    /**
-     * 设置当前字段是可访问的
-     * @param field
-     * @return
-     */
     private static Field makeAccessible(Field field) {
         field.setAccessible(true);
         return field;
@@ -112,11 +77,29 @@ public class ReflectUtils {
     }
 
     /**
-     * 获取内部类名称
-     * @param clazz
+     * 合并两个对象的属性值，target覆盖source的
+     * 注意：使用此方法时，对象的属性类型如果是基本数据类型需要使用包装类代替
+     * @param source
+     * @param target
+     * @param <T>
      * @return
      */
-    public static String getInnerClassName(Class<?> clazz) {
-        return clazz.getName().split("\\$")[1];
+    public static <T> T mergeField(T source, T target) {
+        Field[] fields = source.getClass().getDeclaredFields();
+        Arrays.stream(fields).map(ReflectUtils::makeAccessible).forEach(
+                field -> {
+                    try {
+                        if (Objects.isNull(field.get(target))) {
+                            //target中为null，判断source中有没有，有则拷贝进来
+                            Object obj = field.get(source);
+                            if (Objects.nonNull(obj))
+                                field.set(target, obj);
+                        }
+                    } catch (IllegalAccessException e) {
+                        ExceptionUtils.throwAsUncheckedException(e);
+                    }
+                }
+        );
+        return target;
     }
 }

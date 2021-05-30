@@ -45,9 +45,8 @@ public class DriverManager {
         return manager;
     }
 
-    public WebDriver getDriver(String caseFileName, ICaseRunnable.Env env) {
+    public WebDriver getDriver(ICaseRunnable.EnvConfig envConfig) {
         WebDriver driver = null;
-        ICaseRunnable.EnvConfig envConfig = EnvManager.getInstance().getCaps(caseFileName, env);
         String platformName = envConfig.getEnv().getPlatform();
         Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().orElse(Platform.APP);
         switch (platform) {
@@ -76,12 +75,12 @@ public class DriverManager {
      * @return
      */
     private WebDriver initAppDriver(ICaseRunnable.EnvConfig envConfig) {
-        CaseInsensitiveMap<String, Object> config = envConfig.getConfig();
+        ICaseRunnable.Config config = envConfig.getConfig();
         CaseInsensitiveMap<String, Object> caps = envConfig.getCaps();
 
         try {
             WebDriver driver = null;
-            URL url = new URL(MapUtils.getString(config, "url"));
+            URL url = new URL(config.getUrl());
             DesiredCapabilities capabilities = new DesiredCapabilities(caps);
             String platformName = MapUtils.getString(caps, MobileCapabilityType.PLATFORM_NAME);
             switch (platformName.toUpperCase()) {

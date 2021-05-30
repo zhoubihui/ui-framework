@@ -2,9 +2,7 @@ package com.pumpkin.core;
 
 import com.pumpkin.model.IConfig;
 import com.pumpkin.runner.ICaseRunnable;
-import com.pumpkin.utils.ExceptionUtils;
-import com.pumpkin.utils.MapUtils;
-import com.pumpkin.utils.YamlParse;
+import com.pumpkin.utils.*;
 import io.appium.java_client.remote.MobileCapabilityType;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.slf4j.Logger;
@@ -33,7 +31,7 @@ public class PlatformConfigParse {
 
     public static ICaseRunnable.EnvConfig getConfig(ICaseRunnable.Env env) {
         CaseInsensitiveMap<String, Object> caps = null;
-        CaseInsensitiveMap<String, Object> appConfig = null;
+        ICaseRunnable.Config appConfig = null;
         String platformName = env.getPlatform();
 
         Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().
@@ -48,7 +46,7 @@ public class PlatformConfigParse {
                 caps = initWeb(platformName);
                 break;
         }
-        return ICaseRunnable.EnvConfig.builder().caps(caps).config(appConfig).env(env).build();
+        return ICaseRunnable.EnvConfig.builder().platformName(platformName).caps(caps).config(appConfig).env(env).build();
     }
 
     /**
@@ -74,10 +72,11 @@ public class PlatformConfigParse {
      * @param targetApp
      * @return
      */
-    private static CaseInsensitiveMap<String, Object> initConfig(String platformName, String targetApp) {
-        CaseInsensitiveMap<String, Object> globalConfig = appConfigModel.getBase().getConfig();
-        CaseInsensitiveMap<String, Object> appConfig = appConfigModel.getAppDetail(platformName, targetApp).getConfig();
-        return MapUtils.mergeMap(globalConfig, appConfig);
+    private static ICaseRunnable.Config initConfig(String platformName, String targetApp) {
+        IConfig.ConfigModel globalConfig = appConfigModel.getBase().getConfig();
+        IConfig.ConfigModel appConfig = appConfigModel.getAppDetail(platformName, targetApp).getConfig();
+        IConfig.ConfigModel mergeConfig = ReflectUtils.mergeField(globalConfig, appConfig);
+        return JsonUtils.copyObject(mergeConfig, ICaseRunnable.Config.class);
     }
 
     private static CaseInsensitiveMap<String, Object> initWeb(String platform) {

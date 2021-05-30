@@ -4,11 +4,7 @@ import com.pumpkin.exception.CallCaseMethodException;
 import com.pumpkin.exception.CallPOMethodException;
 import com.pumpkin.exception.NotMatchParameterException;
 import com.pumpkin.model.*;
-import com.pumpkin.runner.structure.*;
-import com.pumpkin.utils.ExceptionUtils;
-import com.pumpkin.utils.FileUtils;
-import com.pumpkin.utils.StringUtils;
-import com.rits.cloning.Cloner;
+import com.pumpkin.utils.*;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.io.FilenameUtils;
 
@@ -16,7 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.pumpkin.runner.CaseParse.CaseDependFile.*;
+import static com.pumpkin.runner.CaseParse.CaseDependFile.DATA;
 
 /**
  * @className: CaseParse
@@ -29,7 +25,6 @@ public class CaseParse {
     private final static String PARAM_REGEX = "\\((.+?)\\)";
     private final static String PARAM_SPLIT_REGEX = "\\$\\{(.+?)\\}";
     private final static Object PRESENT = new Object();
-    private final static Cloner CLONER = new Cloner();
 
     /**
      * 解析CaseModel，转成CaseRunnable格式
@@ -236,10 +231,8 @@ public class CaseParse {
          * 把多个平台的定位符，都存起来，到真正运行case时再根据driver获取对应平台的定位符
          */
         elementSelectorModel.forEach((key, temp) -> {
-            ICaseRunnable.ElementSelector elementSelector = ICaseRunnable.ElementSelector.builder().
-                    strategy(temp.getStrategy()).selector(temp.getSelector()).
-                    index(temp.getIndex()).multiple(temp.isMultiple()).
-                    build();
+            ICaseRunnable.ElementSelector elementSelector = JsonUtils.copyObject(temp,
+                    ICaseRunnable.ElementSelector.class);
             elementSelectorMap.put(key, elementSelector);
         });
         return elementSelectorMap;
@@ -282,7 +275,7 @@ public class CaseParse {
         int dataMinLength = caseParams.stream().map(p -> methodData.get(p).size()).sorted().findFirst().orElse(0);
         Stream.iterate(0, index -> index + 1).limit(dataMinLength).forEach(
                 index -> {
-                    ICaseRunnable.CaseMethod temp = CLONER.deepClone(caseMethod);
+                    ICaseRunnable.CaseMethod temp = JsonUtils.copyObject(caseMethod, ICaseRunnable.CaseMethod.class);
                     CaseInsensitiveMap<String, Object> caseTrueData = temp.getCaseTrueData();
                     caseTrueData.keySet().forEach(
                          key -> {

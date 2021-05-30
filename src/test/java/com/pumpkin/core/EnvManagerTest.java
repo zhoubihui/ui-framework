@@ -15,25 +15,4 @@ class EnvManagerTest {
         CaseParse.parseCase("order-case", caseModel);
         EnvManager manager = EnvManager.getInstance();
     }
-
-    @Test
-    void parentDirectory() {
-        String caseFileName = FileUtils.getFilePathFromDirectory("case/search", "search-case");
-        String parentDirectory = FilenameUtils.getPathNoEndSeparator(caseFileName);
-        System.out.println(parentDirectory);
-        parentDirectory = FilenameUtils.getPathNoEndSeparator(parentDirectory);
-        System.out.println(parentDirectory);
-        parentDirectory = FilenameUtils.getPathNoEndSeparator(parentDirectory);
-        if (parentDirectory.isBlank()) {
-            System.out.println("最底层目录");
-        }
-        System.out.println(parentDirectory);
-
-        System.out.println(FileUtils.getResource(""));
-    }
-
-    @Test
-    void findFile() {
-
-    }
 }

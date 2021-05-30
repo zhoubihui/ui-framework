@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -50,7 +51,19 @@ public interface IConfig {
     @Data
     @Accessors(chain = true)
     class BaseModel {
-        private CaseInsensitiveMap<String, Object> config;
+        private ConfigModel config;
         private CaseInsensitiveMap<String, Object> caps;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    class ConfigModel {
+        private String url;
+        private Boolean enabledTransformXpath;
+        private Boolean enabledScroll;
+        private Boolean enabledReplace;
+        private Boolean enabledMethodLog;
+        private Boolean enableHandleException;
+        private List<String> blackList;
     }
 }

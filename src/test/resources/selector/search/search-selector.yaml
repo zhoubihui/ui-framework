@@ -10,4 +10,4 @@ selectors:
       strategy: xpath
       selector: //android.widget.ListView//android.widget.TextView
       multiple: true
-      # index: 1 # 只有multiple=true时，index才使用，不写index，则认为是读取全部
+      index: -1

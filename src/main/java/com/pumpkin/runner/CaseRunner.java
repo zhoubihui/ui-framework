@@ -1,5 +1,6 @@
 package com.pumpkin.runner;
 
+import com.pumpkin.core.PageManager;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
 import java.util.List;
@@ -27,24 +28,25 @@ public class CaseRunner {
          */
         List<ICaseRunnable.CaseStructure> cases = caseRunnable.getCases();
         ICaseRunnable.Env env = caseRunnable.getEnv();
+        String caseFileName = caseRunnable.getCaseFileName();
         if (cases.isEmpty())
             return;
+        PageRunner pageRunner = PageManager.getInstance().getPageRunner(caseFileName, env);
 
-
-        cases.forEach(CaseRunner::runCaseStructure);
+        cases.forEach(caseStructure -> runCaseStructure(pageRunner, caseStructure));
     }
 
-    private static void runCaseStructure(ICaseRunnable.CaseStructure caseStructure) {
+    private static void runCaseStructure(PageRunner pageRunner, ICaseRunnable.CaseStructure caseStructure) {
         /**
          * 1、执行@BeforeEach
          * 2、执行case
          * 3、执行@AfterEach
          */
         List<ICaseRunnable.CaseMethod> cases = caseStructure.getCases();
-        cases.forEach(CaseRunner::runCaseMethod);
+        cases.forEach(caseMethod -> runCaseMethod(pageRunner, caseMethod));
     }
 
-    private static void runCaseMethod(ICaseRunnable.CaseMethod caseMethod) {
+    private static void runCaseMethod(PageRunner pageRunner, ICaseRunnable.CaseMethod caseMethod) {
         /**
          * 1、执行caseSteps
          * 2、执行asserts
@@ -54,11 +56,13 @@ public class CaseRunner {
         Map<String, Object> caseTrueData = caseMethod.getCaseTrueData();
         Map<String, Object> assertTrueData = caseMethod.getAssertTrueData();
 
-        caseSteps.forEach(caseStep -> runPageObjectStructure(caseStep, caseTrueData));
-        asserts.forEach(assertStep -> runAssert(assertStep, assertTrueData));
+        caseSteps.forEach(caseStep -> runPageObjectStructure(pageRunner, caseStep, caseTrueData));
+        asserts.forEach(assertStep -> runAssert(pageRunner, assertStep, assertTrueData));
     }
 
-    private static void runPageObjectStructure(ICaseRunnable.PageObjectStructure poStructure, Map<String, Object> caseTrueData) {
+    private static void runPageObjectStructure(PageRunner pageRunner,
+                                               ICaseRunnable.PageObjectStructure poStructure,
+                                               Map<String, Object> caseTrueData) {
         /**
          * 1、取出case传递给po方法的参数
          * 2、执行po方法
@@ -73,10 +77,12 @@ public class CaseRunner {
             poTrueData.put(params.get(i), obj);
         }
 
-        poSteps.forEach(poStep -> runPOStep(poStep, poTrueData));
+        poSteps.forEach(poStep -> runPOStep(pageRunner, poStep, poTrueData));
     }
 
-    private static void runPOStep(ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
+    private static void runPOStep(PageRunner pageRunner,
+                                  ICaseRunnable.ElementStructure poStep,
+                                  Map<String, Object> poTrueData) {
         /**
          * 1、根据特定平台的定位符查找元素
          * 2、判断指定action所需的参数是否都有传递
@@ -89,7 +95,9 @@ public class CaseRunner {
 
     }
 
-    private static void runAssert(ICaseRunnable.Assert caseAssert, Map<String, Object> assertTrueData) {
+    private static void runAssert(PageRunner pageRunner,
+                                  ICaseRunnable.Assert caseAssert,
+                                  Map<String, Object> assertTrueData) {
         /**
          * 执行assert
          */
