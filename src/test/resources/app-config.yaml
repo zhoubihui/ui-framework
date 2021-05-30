@@ -7,17 +7,19 @@ base: # app的基本设置
     enabledReplace: true # 开启后，sendKeys前会先清空输入框
     enabledMethodLog: true # 开启后，进入每个方法时都会打印具体的方法名和方法参数
   caps: # 具体app的caps覆盖全局的caps
-    noReset: true
+    noReset: false
     unicodeKeyboard: true
     dontStopAppOnReset: true
 
 app:
   Android: # 这个就是platformName
     wework: # Android平台下具体的App
+      config:
+        enabledMethodLog: false
       caps:
         appPackage: com.tencent.wework
         appActivity: .launch.WwMainActivity
-        noReset: false
+        noReset: true
   iOS:
     UICatalog:
       caps:

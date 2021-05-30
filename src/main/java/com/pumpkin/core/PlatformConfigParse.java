@@ -2,6 +2,8 @@ package com.pumpkin.core;
 
 import com.pumpkin.model.IConfig;
 import com.pumpkin.runner.ICaseRunnable;
+import com.pumpkin.utils.ExceptionUtils;
+import com.pumpkin.utils.MapUtils;
 import com.pumpkin.utils.YamlParse;
 import io.appium.java_client.remote.MobileCapabilityType;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
@@ -12,27 +14,26 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * @className: AppConfigParse
+ * @className: PlatformConfigParse
  * @description: TODO 类描述
  * @author: pumpkin
  * @date: 2021/5/26 4:21 下午
  * @version: 1.0
  **/
 public class PlatformConfigParse {
-    private final static Logger log = LoggerFactory.getLogger(PlatformConfigParse.class);
-
     private final static String APP_CONFIG_PATH = "app-config.yaml";
-    private static IConfig.AppConfigModel appConfig;
+    private static IConfig.AppConfigModel appConfigModel;
     static {
         try {
-            appConfig = YamlParse.readValue(APP_CONFIG_PATH, IConfig.AppConfigModel.class);
+            appConfigModel = YamlParse.readValue(APP_CONFIG_PATH, IConfig.AppConfigModel.class);
         } catch (IOException e) {
-            log.error("读取{}报错:\n{}", APP_CONFIG_PATH, e);
+            ExceptionUtils.throwAsUncheckedException(e);
         }
     }
 
-    public static CaseInsensitiveMap<String, Object> getConfig(ICaseRunnable.Env env) {
-        CaseInsensitiveMap<String, Object> config = null;
+    public static ICaseRunnable.EnvConfig getConfig(ICaseRunnable.Env env) {
+        CaseInsensitiveMap<String, Object> caps = null;
+        CaseInsensitiveMap<String, Object> appConfig = null;
         String platformName = env.getPlatform();
 
         Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().
@@ -40,13 +41,14 @@ public class PlatformConfigParse {
         switch (platform) {
             case APP:
                 String targetApp = env.getTargetApp();
-                config = initAppCaps(platformName, targetApp);
+                caps = initAppCaps(platformName, targetApp);
+                appConfig = initConfig(platformName, targetApp);
                 break;
             case WEB:
-                config = initWeb(platformName);
+                caps = initWeb(platformName);
                 break;
         }
-        return config;
+        return ICaseRunnable.EnvConfig.builder().caps(caps).config(appConfig).env(env).build();
     }
 
     /**
@@ -56,17 +58,26 @@ public class PlatformConfigParse {
      * @return
      */
     private static CaseInsensitiveMap<String, Object> initAppCaps(String platformName, String targetApp) {
-        CaseInsensitiveMap<String, Object> appCaps = appConfig.getAppDetail(platformName, targetApp).getCaps();
-        CaseInsensitiveMap<String, Object> globalCaps = appConfig.getBase().getCaps();
+        CaseInsensitiveMap<String, Object> appCaps = appConfigModel.getAppDetail(platformName, targetApp).getCaps();
+        CaseInsensitiveMap<String, Object> globalCaps = appConfigModel.getBase().getCaps();
 
-        CaseInsensitiveMap<String, Object> mergeCaps = new CaseInsensitiveMap<>();
-        mergeCaps.putAll(globalCaps);
-        //appCaps会覆盖globalCaps中同名的key
-        mergeCaps.putAll(appCaps);
+        CaseInsensitiveMap<String, Object> mergeCaps = MapUtils.mergeMap(globalCaps, appCaps);
 
         //将platform作为caps的platformName写入caps
         mergeCaps.put(MobileCapabilityType.PLATFORM_NAME, platformName);
         return mergeCaps;
+    }
+
+    /**
+     * 获取对应平台下，指定app的config
+     * @param platformName
+     * @param targetApp
+     * @return
+     */
+    private static CaseInsensitiveMap<String, Object> initConfig(String platformName, String targetApp) {
+        CaseInsensitiveMap<String, Object> globalConfig = appConfigModel.getBase().getConfig();
+        CaseInsensitiveMap<String, Object> appConfig = appConfigModel.getAppDetail(platformName, targetApp).getConfig();
+        return MapUtils.mergeMap(globalConfig, appConfig);
     }
 
     private static CaseInsensitiveMap<String, Object> initWeb(String platform) {

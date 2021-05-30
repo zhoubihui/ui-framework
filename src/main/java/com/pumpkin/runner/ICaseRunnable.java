@@ -180,8 +180,9 @@ public interface ICaseRunnable {
 
     @Data
     @Builder
-    class EnvAndCaps {
+    class EnvConfig {
         private ICaseRunnable.Env env;
+        private CaseInsensitiveMap<String, Object> config;
         private CaseInsensitiveMap<String, Object> caps;
     }
 }

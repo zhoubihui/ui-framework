@@ -1,5 +1,7 @@
 package com.pumpkin.utils;
 
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
+
 import java.util.Map;
 import java.util.Objects;
 
@@ -23,5 +25,21 @@ public class MapUtils {
     public static <T> T getOrRemoveValue(Map<String, Object> map, String key, boolean remove, Class<T> clazz) {
         Object value = remove ? map.remove(key) : map.get(key);
         return clazz.cast(value);
+    }
+
+    /**
+     * 合并map，后一个map会覆盖前一个map中key相同(不区分大小写)的value值
+     * @param globalMap
+     * @param appMap
+     * @param <K>
+     * @param <V>
+     * @return
+     */
+    public static <K, V> CaseInsensitiveMap<K, V> mergeMap(CaseInsensitiveMap<K, V> globalMap,
+                                                            CaseInsensitiveMap<K, V> appMap) {
+        CaseInsensitiveMap<K, V> mergeMap = new CaseInsensitiveMap<>();
+        mergeMap.putAll(globalMap);
+        mergeMap.putAll(appMap);
+        return mergeMap;
     }
 }

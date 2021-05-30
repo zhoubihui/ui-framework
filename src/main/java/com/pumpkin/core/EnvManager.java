@@ -4,7 +4,6 @@ import com.pumpkin.model.IModel;
 import com.pumpkin.model.IPublic;
 import com.pumpkin.runner.ICaseRunnable;
 import com.pumpkin.utils.FileUtils;
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,7 +30,7 @@ public class EnvManager {
      * 1、当前case文件中定义的，不存储到Map，因为只能用于本文件
      * 234、存储到Map中，其中23存储时key是目录的名称?(或路径),4待确定
      */
-    private Map<String, ICaseRunnable.EnvAndCaps> capsMap;
+    private Map<String, ICaseRunnable.EnvConfig> capsMap;
     private final static String ENV_CONFIG = "env-config";
 
     private EnvManager() {
@@ -46,14 +45,11 @@ public class EnvManager {
         return manager;
     }
 
-    public ICaseRunnable.EnvAndCaps getCaps(String caseFileName, ICaseRunnable.Env env) {
-        /**
-         * 如果是APP，这里返回的是具体的caps
-         */
-        CaseInsensitiveMap<String, Object> config = null;
+    public ICaseRunnable.EnvConfig getCaps(String caseFileName, ICaseRunnable.Env env) {
+        ICaseRunnable.EnvConfig envConfig = null;
         if (Objects.nonNull(env)) {
-            config = PlatformConfigParse.getConfig(env);
-            return ICaseRunnable.EnvAndCaps.builder().env(env).caps(config).build();
+            envConfig = PlatformConfigParse.getConfig(env);
+            return envConfig;
         }
         /**
          * 234的步骤查找
@@ -70,9 +66,9 @@ public class EnvManager {
             envFileName = FileUtils.getFilePathFromDirectory("", ENV_CONFIG);
             parentDirectory = "root";
         }
-        ICaseRunnable.EnvAndCaps envAndCaps = capsMap.get(parentDirectory);
-        if (Objects.nonNull(envAndCaps))
-            return envAndCaps;
+        envConfig = capsMap.get(parentDirectory);
+        if (Objects.nonNull(envConfig))
+            return envConfig;
 
         /**
          * 缓存中不存在则从文件中读取
@@ -80,11 +76,9 @@ public class EnvManager {
         IPublic.EnvModel envModel = IModel.getModel(envFileName, IPublic.EnvModel.class);
         ICaseRunnable.Env newEnv = ICaseRunnable.Env.builder().platform(envModel.getPlatform()).
                 targetApp(envModel.getTargetApp()).build();
-        config = PlatformConfigParse.getConfig(newEnv);
-        envAndCaps = ICaseRunnable.EnvAndCaps.builder().env(newEnv).caps(config).build();
-        capsMap.put(parentDirectory, envAndCaps);
-
-        return envAndCaps;
+        envConfig = PlatformConfigParse.getConfig(newEnv);
+        capsMap.put(parentDirectory, envConfig);
+        return envConfig;
     }
 
     /**

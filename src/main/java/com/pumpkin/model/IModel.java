@@ -1,8 +1,6 @@
 package com.pumpkin.model;
 
-import com.pumpkin.core.GlobalConfigParse;
 import com.pumpkin.utils.ExceptionUtils;
-import com.pumpkin.utils.FileUtils;
 import com.pumpkin.utils.YamlParse;
 
 import java.io.IOException;

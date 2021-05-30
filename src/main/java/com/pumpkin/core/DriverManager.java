@@ -1,9 +1,18 @@
 package com.pumpkin.core;
 
 import com.pumpkin.runner.ICaseRunnable;
+import com.pumpkin.utils.ExceptionUtils;
+import io.appium.java_client.MobileElement;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.ios.IOSDriver;
+import io.appium.java_client.remote.MobileCapabilityType;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +26,9 @@ import java.util.Objects;
  * @version: 1.0
  **/
 public class DriverManager {
+    /**
+     * key=platform-targetApp
+     */
     private static Map<String, WebDriver> driverMap = null;
     private static DriverManager manager;
 
@@ -35,16 +47,16 @@ public class DriverManager {
 
     public WebDriver getDriver(String caseFileName, ICaseRunnable.Env env) {
         WebDriver driver = null;
-        ICaseRunnable.EnvAndCaps envAndCaps = EnvManager.getInstance().getCaps(caseFileName, env);
-        String platformName = envAndCaps.getEnv().getPlatform();
+        ICaseRunnable.EnvConfig envConfig = EnvManager.getInstance().getCaps(caseFileName, env);
+        String platformName = envConfig.getEnv().getPlatform();
         Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().orElse(Platform.APP);
         switch (platform) {
             case APP:
-                String targetApp = envAndCaps.getEnv().getTargetApp();
+                String targetApp = envConfig.getEnv().getTargetApp();
                 driver = driverMap.get(initAppKey(platformName, targetApp));
                 if (Objects.nonNull(driver))
                     break;
-                driver = initAppDriver(null);
+                driver = initAppDriver(envConfig);
                 driverMap.put(initAppKey(platformName, targetApp), driver);
                 break;
             case WEB:
@@ -60,10 +72,29 @@ public class DriverManager {
 
     /**
      * 根据caps创建driver实例
-     * @param caps
+     * @param envConfig
      * @return
      */
-    private WebDriver initAppDriver(CaseInsensitiveMap<String, Object> caps) {
-        return null;
+    private WebDriver initAppDriver(ICaseRunnable.EnvConfig envConfig) {
+        CaseInsensitiveMap<String, Object> config = envConfig.getConfig();
+        CaseInsensitiveMap<String, Object> caps = envConfig.getCaps();
+
+        try {
+            WebDriver driver = null;
+            URL url = new URL(MapUtils.getString(config, "url"));
+            DesiredCapabilities capabilities = new DesiredCapabilities(caps);
+            String platformName = MapUtils.getString(caps, MobileCapabilityType.PLATFORM_NAME);
+            switch (platformName.toUpperCase()) {
+                case "ANDROID":
+                    driver = new AndroidDriver<MobileElement>(url, capabilities);
+                    break;
+                case "IOS":
+                    driver = new IOSDriver<MobileElement>(url, capabilities);
+                    break;
+            }
+            return driver;
+        } catch (MalformedURLException e) {
+            throw ExceptionUtils.throwAsUncheckedException(e);
+        }
     }
 }
