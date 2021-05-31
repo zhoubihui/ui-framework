@@ -15,4 +15,4 @@ methods:
   get-texts:
     steps:
       - selector: ${search-selector.search-result}
-        action: get
+        action: texts

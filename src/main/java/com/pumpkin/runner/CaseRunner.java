@@ -70,6 +70,7 @@ public class CaseRunner {
         List<ICaseRunnable.ElementStructure> poSteps = poStructure.getPoSteps();
         List<String> params = poStructure.getParams();
         List<String> caseToPOParams = poStructure.getCaseToPOParams();
+        String pageFileName = poStructure.getPageFileName();
 
         CaseInsensitiveMap<String, Object> poTrueData = new CaseInsensitiveMap<>();
         for (int i = 0; i < caseToPOParams.size(); ++i) {
@@ -77,10 +78,10 @@ public class CaseRunner {
             poTrueData.put(params.get(i), obj);
         }
 
-        poSteps.forEach(poStep -> runPOStep(pageRunner, poStep, poTrueData));
+        poSteps.forEach(poStep -> runPOStep(pageRunner, pageFileName, poStep, poTrueData));
     }
 
-    private static void runPOStep(PageRunner pageRunner,
+    private static void runPOStep(PageRunner pageRunner, String pageFileName,
                                   ICaseRunnable.ElementStructure poStep,
                                   Map<String, Object> poTrueData) {
         /**
