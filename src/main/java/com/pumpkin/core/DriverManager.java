@@ -1,5 +1,6 @@
 package com.pumpkin.core;
 
+import com.pumpkin.exception.NotMatchPlatformException;
 import com.pumpkin.runner.ICaseRunnable;
 import com.pumpkin.utils.ExceptionUtils;
 import io.appium.java_client.MobileElement;
@@ -45,10 +46,15 @@ public class DriverManager {
         return manager;
     }
 
+    /**
+     * 获取driver，有则返回，无则根据caps新建
+     * @param envConfig
+     * @return
+     */
     public WebDriver getDriver(ICaseRunnable.EnvConfig envConfig) {
         WebDriver driver = null;
         String platformName = envConfig.getEnv().getPlatform();
-        Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().orElse(Platform.APP);
+        Platform platform = getPlatform(envConfig);
         switch (platform) {
             case APP:
                 String targetApp = envConfig.getEnv().getTargetApp();
@@ -65,6 +71,12 @@ public class DriverManager {
         return driver;
     }
 
+    /**
+     * 自定义APP平台的driver对应的key
+     * @param platform
+     * @param targetApp
+     * @return
+     */
     private String initAppKey(String platform, String targetApp) {
         return platform + "-" + targetApp;
     }
@@ -95,5 +107,45 @@ public class DriverManager {
         } catch (MalformedURLException e) {
             throw ExceptionUtils.throwAsUncheckedException(e);
         }
+    }
+
+    /**
+     * 根据配置信息执行driver.quit()
+     * @param envConfig
+     */
+    public void removeDriver(ICaseRunnable.EnvConfig envConfig) {
+        String platformName = envConfig.getEnv().getPlatform();
+        Platform platform = getPlatform(envConfig);
+        String key = null;
+        switch (platform) {
+            case APP:
+                key = initAppKey(platformName, envConfig.getEnv().getTargetApp());
+                break;
+            case WEB:
+                break;
+            default:
+        }
+        quit(key);
+    }
+
+    /**
+     * 如果driver不为空就执行quit
+     * @param key
+     */
+    private void quit(String key) {
+        WebDriver driver = driverMap.get(key);
+        if (Objects.nonNull(driver))
+            driver.quit();
+    }
+
+    /**
+     * 根据环境配置获取platform平台信息
+     * @param envConfig
+     * @return
+     */
+    private Platform getPlatform(ICaseRunnable.EnvConfig envConfig) {
+        String platformName = envConfig.getEnv().getPlatform();
+        return Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().
+                orElseThrow(() -> new NotMatchPlatformException(envConfig.toString()));
     }
 }

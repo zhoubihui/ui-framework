@@ -5,6 +5,7 @@ import com.pumpkin.runner.PageRunner;
 import org.openqa.selenium.WebDriver;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @className: PageManager
@@ -29,10 +30,15 @@ public class PageManager {
     public PageRunner getPageRunner(String caseFileName, ICaseRunnable.Env env) {
         ICaseRunnable.EnvConfig envConfig = EnvManager.getInstance().getCaps(caseFileName, env);
         WebDriver driver = DriverManager.getInstance().getDriver(envConfig);
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         return PageRunner.builder().driver(driver).envConfig(envConfig).build();
     }
 
-    public boolean removeDriver(String caseFileName, ICaseRunnable.Env env) {
-        return false;
+    public void removeDriver(String caseFileName, ICaseRunnable.Env env, ICaseRunnable.EnvConfig envConfig) {
+        boolean isRemoveEnv = EnvManager.getInstance().removeEnv(caseFileName, env);
+        if (isRemoveEnv) {
+            //返回true则去移除driver
+            DriverManager.getInstance().removeDriver(envConfig);
+        }
     }
 }

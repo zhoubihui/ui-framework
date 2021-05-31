@@ -19,11 +19,13 @@ public class CaseRunner {
         /**
          * 1、判断cases是否有数据，有才继续往下执行
          * 2、确定用例的执行平台信息
-         * 3、执行@BeforeAll
-         * 4、执行@BeforeEach
-         * 5、执行case
-         * 6、执行@AfterEach
-         * 7、执行@AfterAll
+         * 4、初始化PageRunner，内部初始化driver
+         * 4、执行@BeforeAll
+         * 5、执行@BeforeEach
+         * 6、执行case
+         * 7、执行@AfterEach
+         * 8、执行@AfterAll
+         * 9、移除环境变量、driver等
          *  注意：345是循环执行
          */
         List<ICaseRunnable.CaseStructure> cases = caseRunnable.getCases();
@@ -34,6 +36,8 @@ public class CaseRunner {
         PageRunner pageRunner = PageManager.getInstance().getPageRunner(caseFileName, env);
 
         cases.forEach(caseStructure -> runCaseStructure(pageRunner, caseStructure));
+
+        pageRunner.handleEnd(caseFileName, env);
     }
 
     private static void runCaseStructure(PageRunner pageRunner, ICaseRunnable.CaseStructure caseStructure) {
@@ -66,6 +70,9 @@ public class CaseRunner {
         /**
          * 1、取出case传递给po方法的参数
          * 2、执行po方法
+         *      1) 根据特定平台的定位符查找元素
+         *      2) 判断指定action所需的参数是否都有传递
+         *      3) 根据指定action操作元素
          */
         List<ICaseRunnable.ElementStructure> poSteps = poStructure.getPoSteps();
         List<String> params = poStructure.getParams();
@@ -78,22 +85,7 @@ public class CaseRunner {
             poTrueData.put(params.get(i), obj);
         }
 
-        poSteps.forEach(poStep -> runPOStep(pageRunner, pageFileName, poStep, poTrueData));
-    }
-
-    private static void runPOStep(PageRunner pageRunner, String pageFileName,
-                                  ICaseRunnable.ElementStructure poStep,
-                                  Map<String, Object> poTrueData) {
-        /**
-         * 1、根据特定平台的定位符查找元素
-         * 2、判断指定action所需的参数是否都有传递
-         * 3、根据指定action操作元素
-         */
-        Map<String, ICaseRunnable.ElementSelector> selectors = poStep.getSelectors();
-        String action = poStep.getAction();
-        List<String> data = poStep.getData();
-
-
+        poSteps.forEach(poStep -> pageRunner.runCase(pageFileName, poStep, poTrueData));
     }
 
     private static void runAssert(PageRunner pageRunner,
@@ -102,5 +94,6 @@ public class CaseRunner {
         /**
          * 执行assert
          */
+
     }
 }

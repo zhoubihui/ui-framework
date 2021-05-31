@@ -8,8 +8,8 @@ class CaseParseTest {
 
     @Test
     void parseCase() {
-        ICase.CaseModel caseModel = IModel.getModel("case/search/search-case.yaml", ICase.CaseModel.class);
-        ICaseRunnable.CaseRunnable caseRunnable = CaseParse.parseCase("case/search/search-case.yaml", caseModel);
-        System.out.println(caseRunnable);
+        ICase.CaseModel caseModel = IModel.getModel("case/search-case.yaml", ICase.CaseModel.class);
+        ICaseRunnable.CaseRunnable caseRunnable = CaseParse.parseCase("case/search-case.yaml", caseModel);
+        CaseRunner.runCase(caseRunnable);
     }
 }

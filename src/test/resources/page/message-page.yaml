@@ -1,5 +1,5 @@
 config:
-  selectorUrl: selector/search
+  selectorUrl: selector/
 
 # PO中的方法
 methods:

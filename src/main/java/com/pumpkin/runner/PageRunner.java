@@ -1,5 +1,6 @@
 package com.pumpkin.runner;
 
+import com.pumpkin.core.PageManager;
 import com.pumpkin.exception.NotMatchActionException;
 import com.pumpkin.utils.ReflectUtils;
 import io.appium.java_client.MobileBy;
@@ -8,6 +9,8 @@ import lombok.Builder;
 import org.apache.commons.collections4.MapUtils;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -26,6 +29,7 @@ import static com.pumpkin.utils.ReflectUtils.invokeMethod;
  **/
 @Builder
 public class PageRunner {
+    private final static Logger logger = LoggerFactory.getLogger(PageRunner.class);
     /**
      * 1、每个case文件运行时都需要初始化PageRunner对象，同时根据环境配置初始化WebDriver
      * 2、PageRunner对象保存着WebDriver对象，后续的操作都是使用这个WebDriver
@@ -48,7 +52,9 @@ public class PageRunner {
         GET_ATTRIBUTE = findMethod(PageRunner.class, "getAttribute", WebElement.class, String.class);
     }
 
-    public void run(String pageFileName, ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
+    public void runCase(String pageFileName, ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
+        logger.info(poStep.toString());
+        logger.info(poTrueData.toString());
         /**
          * 1、获取对应平台的定位符
          * 2、定位元素：定义如下
@@ -119,9 +125,9 @@ public class PageRunner {
      * @param action 动作
      * @param data 这个动作对应的方法需要传入的参数
      * @param poTrueData 实参
-     * @param multiple
-     * @param index
-     * @return
+     * @param multiple 是否使用findElements查找元素
+     * @param index 用findElements查找元素后取第几个元素
+     * @return 操作方法的返回值
      */
     private Object operateElement(String pageFileName,
                                    List<WebElement> elements,
@@ -204,6 +210,10 @@ public class PageRunner {
 
     private void setTimeOut(long time, TimeUnit unit) {
 
+    }
+
+    public void handleEnd(String caseFileName, ICaseRunnable.Env env) {
+        PageManager.getInstance().removeDriver(caseFileName, env, envConfig);
     }
 
     private boolean handleException() {

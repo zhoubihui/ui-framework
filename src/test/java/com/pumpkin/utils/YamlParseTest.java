@@ -20,11 +20,11 @@ class YamlParseTest {
     static Stream<Arguments> readValue() {
         return Stream.of(
                 Arguments.of("app-config.yaml", IConfig.AppConfigModel.class),
-                Arguments.of("page/search/search-page.yaml", IPage.PageModel.class),
-                Arguments.of("page/search/message-page.yaml", IPage.PageModel.class),
-                Arguments.of("selector/search/search-selector.yaml", ISelector.SelectorModel.class),
-                Arguments.of("data/search/search-data.yaml", IData.DataModel.class),
-                Arguments.of("case/search/search-case.yaml", ICase.CaseModel.class)
+                Arguments.of("page/search-page.yaml", IPage.PageModel.class),
+                Arguments.of("page/message-page.yaml", IPage.PageModel.class),
+                Arguments.of("selector/search-selector.yaml", ISelector.SelectorModel.class),
+                Arguments.of("data/search-data.yaml", IData.DataModel.class),
+                Arguments.of("case/search-case.yaml", ICase.CaseModel.class)
         );
     }
 }

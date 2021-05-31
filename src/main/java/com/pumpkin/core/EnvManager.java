@@ -89,6 +89,11 @@ public class EnvManager {
      */
     public boolean removeEnv(String caseFileName, ICaseRunnable.Env env) {
         //怎么移除
+        /**
+         * 1、case文件内定义的env,因为不保存env所以此处直接返回true即可
+         */
+        if (Objects.nonNull(env))
+            return true;
         return false;
     }
 }

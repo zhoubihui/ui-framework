@@ -1,6 +1,6 @@
 selectors:
   to-search:
     Android:
-      strategy: xpath
+      strategy: id
       selector: com.tencent.wework:id/h8q
       multiple: false
