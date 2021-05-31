@@ -3,13 +3,10 @@ package com.pumpkin.core;
 import com.pumpkin.runner.ICaseRunnable;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.remote.MobileCapabilityType;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openqa.selenium.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @className: PageHelper
@@ -19,12 +16,18 @@ import java.util.List;
  * @version: 1.0
  **/
 public class PageHelper extends BasePageHelper {
-    private final static Logger logger = LoggerFactory.getLogger(PageHelper.class);
 
     public PageHelper(WebDriver driver, ICaseRunnable.EnvConfig envConfig, String platformName) {
         super(driver, envConfig, platformName);
     }
 
+    /**
+     * 重写父类方法，支持滑动
+     * @param by
+     * @param multiple
+     * @param index
+     * @return
+     */
     @Override
     protected List<WebElement> findElements(By by, boolean multiple, int index) {
         try {
@@ -35,6 +38,28 @@ public class PageHelper extends BasePageHelper {
              */
             if (envConfig.getConfig().isEnabledScroll() && swipeTo0(by)) {
                 return super.findElements(by, multiple, index);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * 感觉这样不太好，应该只需要处理findElements和operateElement即可，待优化
+     * @param pageFileName
+     * @param poStep
+     * @param poTrueData
+     */
+    @Override
+    public void runCase(String pageFileName, ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
+        try {
+            super.runCase(pageFileName, poStep, poTrueData);
+        } catch (TimeoutException |
+                StaleElementReferenceException |
+                ArrayIndexOutOfBoundsException |
+                NoSuchElementException e) {
+            if (envConfig.getConfig().isEnableHandleException() && handleException()) {
+                super.runCase(pageFileName, poStep, poTrueData);
             } else {
                 throw e;
             }
@@ -58,4 +83,6 @@ public class PageHelper extends BasePageHelper {
         }
         return isScroll;
     }
+
+
 }

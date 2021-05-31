@@ -31,7 +31,7 @@ public class BasePageHelper {
     protected String platformName;
 
     /**
-     * 1、每个case文件运行时都需要初始化PageRunner对象，同时根据环境配置初始化WebDriver
+     * 1、每个case文件运行时都需要初始化PageHelper对象，同时根据环境配置初始化WebDriver
      * 2、BasePageHelper对象保存着WebDriver对象，后续的操作都是使用这个WebDriver
      */
     protected BasePageHelper(WebDriver driver, ICaseRunnable.EnvConfig envConfig, String platformName) {
@@ -71,6 +71,7 @@ public class BasePageHelper {
 
     /**
      * 操作元素: sendKeys、clear、click
+     * 未完成: 还可以加上输入后是否按enter键
      * @param element
      * @param keyword
      * @param replace
@@ -115,6 +116,34 @@ public class BasePageHelper {
     }
 
     /**
+     * 1、获取对应平台的定位符
+     * 2、定位元素：定义如下
+     *  multiple=true，说明需要执行driver.findElements()，如果index>=0，说明需要取列表中的某个元素
+     *  multiple=false,说明需要执行driver.findElement()
+     *  第一个定义存在的问题：基本数据类型int的默认值是0，如果原本想表达不填是全部的，现在发现实现不了，所以将定义一改成：
+     *  multiple=true，说明需要执行driver.findElements()，如果index>=0，说明需要取列表中的某个元素
+     *  multiple=true，说明需要执行driver.findElements()，如果index<0，说明需要取整个列表
+     * 3、操作元素
+     *  click:
+     *  clear:
+     *  sendKeys:
+     *  getText:
+     *  getAttribute:
+     */
+    public void runCase(String pageFileName, ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
+        ICaseRunnable.ElementSelector elementSelector = poStep.getSelectors().get(platformName);
+        String action = poStep.getAction();
+        List<String> data = poStep.getData();
+
+        boolean multiple = elementSelector.isMultiple();
+        int index = elementSelector.getIndex();
+
+        By by = findBy(elementSelector.getStrategy(), elementSelector.getSelector());
+        List<WebElement> elements = findElements(by, multiple, index);
+        operateElement(pageFileName, elements, action, data, poTrueData, multiple, index);
+    }
+
+    /**
      * 查找元素的统一封装方法
      * @param by
      * @param multiple
@@ -156,34 +185,6 @@ public class BasePageHelper {
     }
 
     /**
-     * 1、获取对应平台的定位符
-     * 2、定位元素：定义如下
-     *  multiple=true，说明需要执行driver.findElements()，如果index>=0，说明需要取列表中的某个元素
-     *  multiple=false,说明需要执行driver.findElement()
-     *  第一个定义存在的问题：基本数据类型int的默认值是0，如果原本想表达不填是全部的，现在发现实现不了，所以将定义一改成：
-     *  multiple=true，说明需要执行driver.findElements()，如果index>=0，说明需要取列表中的某个元素
-     *  multiple=true，说明需要执行driver.findElements()，如果index<0，说明需要取整个列表
-     * 3、操作元素
-     *  click:
-     *  clear:
-     *  sendKeys:
-     *  getText:
-     *  getAttribute:
-     */
-    public void runCase(String pageFileName, ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
-        ICaseRunnable.ElementSelector elementSelector = poStep.getSelectors().get(platformName);
-        String action = poStep.getAction();
-        List<String> data = poStep.getData();
-
-        boolean multiple = elementSelector.isMultiple();
-        int index = elementSelector.getIndex();
-
-        By by = findBy(elementSelector.getStrategy(), elementSelector.getSelector());
-        List<WebElement> elements = findElements(by, multiple, index);
-        operateElement(pageFileName, elements, action, data, poTrueData, multiple, index);
-    }
-
-    /**
      * 操作元素
      * @param pageFileName page文件名
      * @param elements 需要操作的元素，注意：目前只有action=texts才支持多个元素
@@ -201,6 +202,7 @@ public class BasePageHelper {
                                   Map<String, Object> poTrueData,
                                   boolean multiple,
                                   int index) {
+
         PageOperate pageOperate = Arrays.stream(PageOperate.values()).
                 filter(p -> p.alias.equalsIgnoreCase(action)).
                 findFirst().orElseThrow(() -> new NotMatchActionException(pageFileName, action));
@@ -223,7 +225,7 @@ public class BasePageHelper {
      * 通用异常处理，enableHandleException=true时会执行此方法
      * @return
      */
-    private boolean handleException() {
+    protected boolean handleException() {
         setTimeOut0(0, TimeUnit.SECONDS);
         List<String> blackList = envConfig.getConfig().getBlackList();
         boolean isHandle = blackList.stream().anyMatch(
