@@ -1,7 +1,8 @@
 package com.pumpkin.core;
 
 import com.pumpkin.runner.ICaseRunnable;
-import com.pumpkin.runner.PageRunner;
+import io.appium.java_client.remote.MobileCapabilityType;
+import org.apache.commons.collections4.MapUtils;
 import org.openqa.selenium.WebDriver;
 
 import java.util.Objects;
@@ -27,14 +28,30 @@ public class PageManager {
         return manager;
     }
 
-    public PageRunner getPageRunner(String caseFileName, ICaseRunnable.Env env) {
+    /**
+     * 根据环境配置信息创建PageHelper实例
+     * @param caseFileName
+     * @param env
+     * @return
+     */
+    public PageHelper getPageHelper(String caseFileName, ICaseRunnable.Env env) {
         ICaseRunnable.EnvConfig envConfig = EnvManager.getInstance().getCaps(caseFileName, env);
         WebDriver driver = DriverManager.getInstance().getDriver(envConfig);
+        String platformName = MapUtils.getString(envConfig.getCaps(), MobileCapabilityType.PLATFORM_NAME);
+
+        //待处理
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        return PageRunner.builder().driver(driver).envConfig(envConfig).build();
+
+        return new PageHelper(driver, envConfig, platformName);
     }
 
-    public void removeDriver(String caseFileName, ICaseRunnable.Env env, ICaseRunnable.EnvConfig envConfig) {
+    /**
+     * 根据环境配置信息移除driver
+     * @param caseFileName
+     * @param env
+     * @param envConfig
+     */
+    public void removePageHelper(String caseFileName, ICaseRunnable.Env env, ICaseRunnable.EnvConfig envConfig) {
         boolean isRemoveEnv = EnvManager.getInstance().removeEnv(caseFileName, env);
         if (isRemoveEnv) {
             //返回true则去移除driver

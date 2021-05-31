@@ -28,6 +28,11 @@ public class StringUtils {
                 reduce(new String[0], ArrayUtils::addAll);
     }
 
+    public static boolean isMatcher(String input, String regex) {
+        Matcher matcher = Pattern.compile(regex).matcher(input);
+        return matcher.matches();
+    }
+
     /**
      * 获取字符串匹配的子字符串，固定返回第2个分组
      * @param input

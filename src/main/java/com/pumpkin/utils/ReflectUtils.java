@@ -102,4 +102,13 @@ public class ReflectUtils {
         );
         return target;
     }
+
+    /**
+     * 获取内部类名称
+     * @param clazz
+     * @return
+     */
+    public static String getInnerClassName(Class<?> clazz) {
+        return clazz.getName().split("\\$")[1];
+    }
 }
