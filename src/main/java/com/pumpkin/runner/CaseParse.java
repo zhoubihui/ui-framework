@@ -231,7 +231,7 @@ public class CaseParse {
          * 把多个平台的定位符，都存起来，到真正运行case时再根据driver获取对应平台的定位符
          */
         elementSelectorModel.forEach((key, temp) -> {
-            ICaseRunnable.ElementSelector elementSelector = JsonUtils.copyObject(temp,
+            ICaseRunnable.ElementSelector elementSelector = ConvertUtils.copyObject(temp,
                     ICaseRunnable.ElementSelector.class);
             elementSelectorMap.put(key, elementSelector);
         });
@@ -275,7 +275,7 @@ public class CaseParse {
         int dataMinLength = caseParams.stream().map(p -> methodData.get(p).size()).sorted().findFirst().orElse(0);
         Stream.iterate(0, index -> index + 1).limit(dataMinLength).forEach(
                 index -> {
-                    ICaseRunnable.CaseMethod temp = JsonUtils.copyObject(caseMethod, ICaseRunnable.CaseMethod.class);
+                    ICaseRunnable.CaseMethod temp = ConvertUtils.copyObject(caseMethod, ICaseRunnable.CaseMethod.class);
                     CaseInsensitiveMap<String, Object> caseTrueData = temp.getCaseTrueData();
                     caseTrueData.keySet().forEach(
                          key -> {

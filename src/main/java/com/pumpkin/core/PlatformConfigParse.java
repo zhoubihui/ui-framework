@@ -76,7 +76,7 @@ public class PlatformConfigParse {
         IConfig.ConfigModel globalConfig = appConfigModel.getBase().getConfig();
         IConfig.ConfigModel appConfig = appConfigModel.getAppDetail(platformName, targetApp).getConfig();
         IConfig.ConfigModel mergeConfig = ReflectUtils.mergeField(globalConfig, appConfig);
-        return JsonUtils.copyObject(mergeConfig, ICaseRunnable.Config.class);
+        return ConvertUtils.copyObject(mergeConfig, ICaseRunnable.Config.class);
     }
 
     private static CaseInsensitiveMap<String, Object> initWeb(String platform) {

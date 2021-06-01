@@ -1,7 +1,9 @@
 package com.pumpkin.core;
 
+import cn.hutool.core.convert.Convert;
 import com.pumpkin.exception.NotMatchActionException;
 import com.pumpkin.runner.ICaseRunnable;
+import com.pumpkin.utils.ConvertUtils;
 import com.pumpkin.utils.StringUtils;
 import io.appium.java_client.MobileBy;
 import lombok.Getter;
@@ -164,6 +166,7 @@ public class BasePageHelper {
 
         By by = findBy(elementSelector.getStrategy(), elementSelector.getSelector());
         List<WebElement> elements = findElements(by, multiple, index);
+        proxyHandleException(FIND_ELEMENTS, by, multiple, index);
         return operateElement(pageFileName, elements, action, data, poTrueData, multiple, index);
     }
 
@@ -298,7 +301,7 @@ public class BasePageHelper {
      * 通用异常处理，enableHandleException=true时会执行此方法
      * @return
      */
-    protected boolean handleException() {
+    private boolean handleException() {
         setTimeOut0(0, TimeUnit.SECONDS);
         List<String> blackList = envConfig.getConfig().getBlackList();
         boolean isHandle = blackList.stream().anyMatch(
@@ -352,7 +355,7 @@ public class BasePageHelper {
      * 2、记录定位方式属于By还是MobileBy
      * 3、记录定位方式的参数类型（其实不写也可以）
      */
-    enum PageBy {
+    private enum PageBy {
         ID(FIND_ID, "id"),
         XPATH(FIND_XPATH, "xpath"),
         AID(FIND_AID,"aid"),
@@ -385,4 +388,6 @@ public class BasePageHelper {
             this.method = method;
         }
     }
+
+
 }
