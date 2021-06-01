@@ -49,6 +49,9 @@ public class BasePageHelper {
     private final static Method FIND_XPATH;
     private final static Method FIND_AID;
     private final static Method FIND_UIAUTOMATOR;
+
+    private final static Method FIND_ELEMENTS;
+    private final static Method OPERATE_ELEMENT;
     static {
         /**
          * 封装的元素操作
@@ -67,6 +70,14 @@ public class BasePageHelper {
         FIND_XPATH = findMethod(By.class, "xpath", String.class);
         FIND_AID = findMethod(MobileBy.class, "AccessibilityId", String.class);
         FIND_UIAUTOMATOR = findMethod(MobileBy.class, "AndroidUIAutomator", String.class);
+
+        /**
+         * 封装需要做通用异常处理的方法
+         */
+        FIND_ELEMENTS = findMethod(BasePageHelper.class, "findElements", By.class, boolean.class, int.class);
+        OPERATE_ELEMENT = findMethod(BasePageHelper.class, "operateElement",
+                String.class, List.class, String.class, List.class, Map.class, boolean.class, int.class
+                );
     }
 
     /**
@@ -168,17 +179,14 @@ public class BasePageHelper {
         /**
          * 1、获取By实例: 首先根据别名找到真实的定位符方法名，然后通过反射获取By实例
          * 2、查找元素
+         *      查找单个元素的两种情况：
+         *        1) multiple=false,index=0(默认值)
+         *        2) multiple=true,index>=0(输入)
+         *        3) 执行findElements(By).get(index),如果没找到元素那么这里会抛出下标越界
          */
         if (multiple && index < 0) {
-            //查询全部元素
             elements = findElements0(by);
         } else {
-            /**
-             * 查找单个元素的两种情况：
-             * 1、multiple=false,index=0(默认值)
-             * 2、multiple=true,index>=0(输入)
-             * 执行findElements(By).get(index),如果没找到元素那么这里会抛出下标越界
-             */
             elements = Collections.singletonList(findElement0(by, index));
         }
         return elements;
