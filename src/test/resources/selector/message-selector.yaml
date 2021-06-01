@@ -4,3 +4,8 @@ selectors:
       strategy: id
       selector: com.tencent.wework:id/h8q
       multiple: false
+  to-address:
+    Android:
+      strategy: xpath
+      selector: //*[@text='通讯录']
+      multiple: false

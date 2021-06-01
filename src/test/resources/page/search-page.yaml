@@ -5,13 +5,11 @@ methods:
   search:
     params: # 表示这个po方法需要的参数
       - keyword
-      - replace
     steps:
       - selector: ${search-selector.search}
         action: input
         data:
           - ${keyword}
-          - ${replace}
   get-texts:
     steps:
       - selector: ${search-selector.search-result}

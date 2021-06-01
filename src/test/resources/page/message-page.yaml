@@ -8,3 +8,7 @@ methods:
       - selector: ${message-selector.to-search}
         action: click
     # next: search-page # 是否有必要,下一个页面
+  to-address:
+    steps:
+      - selector: ${message-selector.to-address}
+        action: click

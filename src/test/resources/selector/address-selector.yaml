@@ -1,0 +1,41 @@
+selectors:
+  addMember:
+    Android:
+      strategy: xpath
+      selector: //*[@text='添加成员']
+      multiple: false
+  choose:
+    Android:
+      strategy: xpath
+      selector: //*[@text='手动输入添加']
+      multiple: false
+  name:
+    Android:
+      strategy: id
+      selector: com.tencent.wework:id/ays
+      multiple: false
+  phone:
+    Android:
+      strategy: id
+      selector: com.tencent.wework:id/f4m
+      multiple: false
+  cancel:
+    Android:
+      strategy: xpath
+      selector: //*[@text='保存后自动发送邀请通知']
+      multiple: false
+  submit:
+    Android:
+      strategy: xpath
+      selector: //*[@text='保存']
+      multiple: false
+  back:
+    Android:
+      strategy: id
+      selector: com.tencent.wework:id/h86
+      multiple: false
+  to-search:
+    Android:
+      strategy: id
+      selector: com.tencent.wework:id/h8q
+      multiple: false

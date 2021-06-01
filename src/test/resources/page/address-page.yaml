@@ -1,0 +1,32 @@
+config:
+  selectorUrl: selector/
+
+methods:
+  addMember:
+    params:
+      - name
+      - phone
+    steps:
+      - selector: ${address-selector.addMember}
+        action: click
+      - selector: ${address-selector.choose}
+        action: click
+      - selector: ${address-selector.name}
+        action: input
+        data:
+          - ${name}
+      - selector: ${address-selector.phone}
+        action: input
+        data:
+          - ${phone}
+      - selector: ${address-selector.cancel}
+        action: click
+      - selector: ${address-selector.submit}
+        action: click
+      - selector: ${address-selector.back}
+        action: click
+
+  to-search:
+    steps:
+      - selector: ${address-selector.to-search}
+        action: click

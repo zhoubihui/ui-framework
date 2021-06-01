@@ -1,12 +1,11 @@
 package com.pumpkin.core;
 
 import com.pumpkin.runner.ICaseRunnable;
-import io.appium.java_client.AppiumDriver;
-import io.appium.java_client.remote.MobileCapabilityType;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @className: PageHelper
@@ -32,7 +31,7 @@ public class PageHelper extends BasePageHelper {
     protected List<WebElement> findElements(By by, boolean multiple, int index) {
         try {
             return super.findElements(by, multiple, index);
-        } catch (ArrayIndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             /**
              * 滑动后找到元素则再查找一次，否则继续向上抛出异常
              */
@@ -42,46 +41,6 @@ public class PageHelper extends BasePageHelper {
                 throw e;
             }
         }
-    }
-
-    /**
-     * 感觉这样不太好，应该只需要处理findElements和operateElement即可，待优化
-     * @param pageFileName
-     * @param poStep
-     * @param poTrueData
-     */
-    @Override
-    public void runCase(String pageFileName, ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
-        try {
-            super.runCase(pageFileName, poStep, poTrueData);
-        } catch (TimeoutException |
-                StaleElementReferenceException |
-                ArrayIndexOutOfBoundsException |
-                NoSuchElementException e) {
-            if (envConfig.getConfig().isEnableHandleException() && handleException()) {
-                super.runCase(pageFileName, poStep, poTrueData);
-            } else {
-                throw e;
-            }
-        }
-    }
-
-    /**
-     * 滑动方法，根据平台调用不同平台的滑动功能
-     * @param by
-     * @return
-     */
-    private boolean swipeTo0(By by) {
-        boolean isScroll = false;
-        String platformName = (String) ((AppiumDriver) driver).getCapabilities().
-                getCapability(MobileCapabilityType.PLATFORM_NAME);
-        switch (platformName.toUpperCase()) {
-            case "ANDROID":
-                break;
-            case "IOS":
-                break;
-        }
-        return isScroll;
     }
 
 

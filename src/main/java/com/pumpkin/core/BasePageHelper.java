@@ -2,20 +2,18 @@ package com.pumpkin.core;
 
 import com.pumpkin.exception.NotMatchActionException;
 import com.pumpkin.runner.ICaseRunnable;
-import com.pumpkin.utils.ReflectUtils;
+import com.pumpkin.utils.StringUtils;
 import io.appium.java_client.MobileBy;
 import lombok.Getter;
-import lombok.Setter;
-import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.*;
 
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.pumpkin.utils.ReflectUtils.findMethod;
-import static com.pumpkin.utils.ReflectUtils.invokeMethod;
+import static com.pumpkin.utils.ReflectUtils.*;
 
 /**
  * @className: BasePageHelper
@@ -46,13 +44,29 @@ public class BasePageHelper {
     private final static Method GET_TEXT;
     private final static Method GET_TEXTS;
     private final static Method GET_ATTRIBUTE;
+
+    private final static Method FIND_ID;
+    private final static Method FIND_XPATH;
+    private final static Method FIND_AID;
+    private final static Method FIND_UIAUTOMATOR;
     static {
-        SEND_KEYS = findMethod(BasePageHelper.class, "sendKeys0", WebElement.class, String.class, boolean.class);
+        /**
+         * 封装的元素操作
+         */
+        SEND_KEYS = findMethod(BasePageHelper.class, "sendKeys0", WebElement.class, String.class);
         CLICK = findMethod(BasePageHelper.class, "click0", WebElement.class);
         CLEAR = findMethod(BasePageHelper.class, "clear0", WebElement.class);
         GET_TEXT = findMethod(BasePageHelper.class, "getText0", WebElement.class);
         GET_TEXTS = findMethod(BasePageHelper.class, "getTexts0", List.class);
         GET_ATTRIBUTE = findMethod(BasePageHelper.class, "getAttribute0", WebElement.class, String.class);
+
+        /**
+         * 封装的元素定位符
+         */
+        FIND_ID = findMethod(By.class, "id", String.class);
+        FIND_XPATH = findMethod(By.class, "xpath", String.class);
+        FIND_AID = findMethod(MobileBy.class, "AccessibilityId", String.class);
+        FIND_UIAUTOMATOR = findMethod(MobileBy.class, "AndroidUIAutomator", String.class);
     }
 
     /**
@@ -74,11 +88,10 @@ public class BasePageHelper {
      * 未完成: 还可以加上输入后是否按enter键
      * @param element
      * @param keyword
-     * @param replace
      * @return
      */
-    private WebElement sendKeys0(WebElement element, String keyword, boolean replace) {
-        if (replace)
+    private WebElement sendKeys0(WebElement element, String keyword) {
+        if (envConfig.getConfig().isEnabledReplace())
             clear0(element);
         element.sendKeys(keyword);
         return element;
@@ -130,7 +143,7 @@ public class BasePageHelper {
      *  getText:
      *  getAttribute:
      */
-    public void runCase(String pageFileName, ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
+    public Object runCase(String pageFileName, ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
         ICaseRunnable.ElementSelector elementSelector = poStep.getSelectors().get(platformName);
         String action = poStep.getAction();
         List<String> data = poStep.getData();
@@ -140,7 +153,7 @@ public class BasePageHelper {
 
         By by = findBy(elementSelector.getStrategy(), elementSelector.getSelector());
         List<WebElement> elements = findElements(by, multiple, index);
-        operateElement(pageFileName, elements, action, data, poTrueData, multiple, index);
+        return operateElement(pageFileName, elements, action, data, poTrueData, multiple, index);
     }
 
     /**
@@ -178,10 +191,9 @@ public class BasePageHelper {
      * @return
      */
     private By findBy(String strategy, String selector) {
-        PageBy pageBy = Arrays.stream(PageBy.values()).filter(by -> by.isAlias(strategy)).findFirst().
+        PageBy pageBy = Arrays.stream(PageBy.values()).filter(by -> by.alias.equalsIgnoreCase(strategy)).findFirst().
                 orElse(PageBy.ID);
-        Method method = findMethod(pageBy.getByClazz(), pageBy.getFullName(), pageBy.getParameterTypes());
-        return (By) ReflectUtils.invokeMethod(method, pageBy.getByClazz(), selector);
+        return (By) invokeMethod(pageBy.method, null, selector);
     }
 
     /**
@@ -222,6 +234,59 @@ public class BasePageHelper {
     }
 
     /**
+     * 滑动方法，根据平台调用不同平台的滑动功能
+     * @param by
+     * @return
+     */
+    protected boolean swipeTo0(By by) {
+        boolean isScroll = false;
+        switch (platformName.toUpperCase()) {
+            case "ANDROID":
+                isScroll = swipeAndroid0(by);
+                break;
+            case "IOS":
+                isScroll = swipeIOS0(by);
+                break;
+        }
+        return isScroll;
+    }
+
+    /**
+     * Android平台利用UiSelector类来实现滑动
+     * @param by
+     */
+    private boolean swipeAndroid0(By by) {
+        String uiSelector = null;
+        //获取具体的元素定位方法,拼接到滑动语法中
+        if (by.getClass() == MobileBy.ByAndroidUIAutomator.class) {
+            //todo 如果原本就是UiSelector的语法
+        } else {
+            //app中的id是带包名，by.toString()的格式是：ById：com.tencent.wework:id/h8q，所以切割时需要加正则切割
+            uiSelector = UiSelectorHelper.transformUiSelector(getInnerClassName(by.getClass()),
+                    StringUtils.split(by.toString(), ":\\s{1}")[1]);
+            if (uiSelector.isBlank()) {
+                return false;
+            }
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append("new UiScrollable(new UiSelector().scrollable(true).instance(0)).scrollIntoView(");
+        builder.append(uiSelector).append(")");
+        By uiSelectorBy = findBy("uiautomator", builder.toString());
+        findElement0(uiSelectorBy, 0);
+        return true;
+    }
+
+    /**
+     * iOS平台滑动方法
+     * @param by
+     * @return
+     */
+    private boolean swipeIOS0(By by) {
+        //待定
+        return false;
+    }
+
+    /**
      * 通用异常处理，enableHandleException=true时会执行此方法
      * @return
      */
@@ -252,13 +317,13 @@ public class BasePageHelper {
      */
     private Object proxyHandleException(Method method, Object... args) {
         try {
-            return ReflectUtils.invokeMethod(method, this, args);
+            return invokeMethod(method, this, args);
         } catch (TimeoutException |
                 StaleElementReferenceException |
                 ArrayIndexOutOfBoundsException |
                 NoSuchElementException e) {
             if (envConfig.getConfig().isEnableHandleException() && handleException()) {
-                return ReflectUtils.invokeMethod(method, this, args);
+                return invokeMethod(method, this, args);
             } else {
                 throw e;
             }
@@ -280,32 +345,16 @@ public class BasePageHelper {
      * 3、记录定位方式的参数类型（其实不写也可以）
      */
     enum PageBy {
-        ID(By.class, "id"),
-        XPATH(By.class, "xpath"),
-        AID(MobileBy.class,"aid", "AccessibilityId"),
-        UIAUTOMATOR(MobileBy.class, "uiautomator", "AndroidUIAutomator"),
+        ID(FIND_ID, "id"),
+        XPATH(FIND_XPATH, "xpath"),
+        AID(FIND_AID,"aid"),
+        UIAUTOMATOR(FIND_UIAUTOMATOR, "uiautomator"),
         ;
-        private final Class<? extends By> byClazz;
-        private final Class<?>[] parameterTypes = new Class[]{String.class};
-        private final String[] aliases;
-        PageBy(Class<? extends By> byClazz, String... alias) {
-            this.byClazz = byClazz;
-            this.aliases = alias;
-        }
-        public boolean isAlias(String alias) {
-            return aliases[0].equalsIgnoreCase(alias);
-        }
-
-        public String getFullName() {
-            return aliases[aliases.length - 1];
-        }
-
-        public Class<? extends By> getByClazz() {
-            return byClazz;
-        }
-
-        public Class<?>[] getParameterTypes() {
-            return parameterTypes;
+        private final Method method;
+        private final String alias;
+        PageBy(Method method, String alias) {
+            this.method = method;
+            this.alias = alias;
         }
     }
 

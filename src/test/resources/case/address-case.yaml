@@ -1,0 +1,22 @@
+env:
+  platform: Android
+  targetApp: wework
+
+config:
+  pageUrl: page/
+  dataUrl: data/
+
+cases:
+  - addMember:
+      params:
+        - name
+        - phone
+      steps:
+        - ${message-page.to-address}
+        - ${address-page.addMember(${name},${phone})}
+        - ${address-page.to-search}
+        - ${search-page.search(${name})}
+      asserts:
+        - type: contains
+          expected: ${name}
+          actual: ${search-page.get-texts}
