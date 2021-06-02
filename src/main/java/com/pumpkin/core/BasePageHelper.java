@@ -319,10 +319,10 @@ public class BasePageHelper {
      * @return
      */
     private boolean handleException() {
-        setTimeOut0(0, TimeUnit.SECONDS);
         List<String> blackList = envConfig.getConfig().getBlackList();
         if (Objects.isNull(blackList))
             return false;
+        setTimeOut0(0, TimeUnit.SECONDS);
         //之前的写法是anyMatch，发现只要有一个为true之后就不再执行后续弹窗，所以这里改成map
         Stream<Boolean> isHandles =  blackList.stream().map(
                 b -> {
@@ -337,7 +337,7 @@ public class BasePageHelper {
                 }
         );
         setTimeOut0(10, TimeUnit.SECONDS);
-        return isHandles.anyMatch(h -> h);
+        return isHandles.anyMatch(b -> b);
     }
 
     /**
