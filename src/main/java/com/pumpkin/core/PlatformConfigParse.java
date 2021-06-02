@@ -34,8 +34,8 @@ public class PlatformConfigParse {
         ICaseRunnable.Config appConfig = null;
         String platformName = env.getPlatform();
 
-        Platform platform = Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().
-                orElse(Platform.APP);
+        IPlatform.Platform platform = Arrays.stream(IPlatform.Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().
+                orElse(IPlatform.Platform.APP);
         switch (platform) {
             case APP:
                 String targetApp = env.getTargetApp();

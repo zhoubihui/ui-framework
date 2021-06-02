@@ -4,5 +4,3 @@ data:
       - 周永震
     expected:
       - 周永震
-    replace:
-      - true

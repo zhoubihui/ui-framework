@@ -5,6 +5,7 @@ import io.appium.java_client.remote.MobileCapabilityType;
 import org.apache.commons.collections4.MapUtils;
 import org.openqa.selenium.WebDriver;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -37,12 +38,14 @@ public class PageManager {
     public PageHelper getPageHelper(String caseFileName, ICaseRunnable.Env env) {
         ICaseRunnable.EnvConfig envConfig = EnvManager.getInstance().getCaps(caseFileName, env);
         WebDriver driver = DriverManager.getInstance().getDriver(envConfig);
-        String platformName = MapUtils.getString(envConfig.getCaps(), MobileCapabilityType.PLATFORM_NAME);
+        IPlatform.AppPlatform appPlatform = Arrays.stream(IPlatform.AppPlatform.values()).filter(
+                a -> a.isAlias(MapUtils.getString(envConfig.getCaps(), MobileCapabilityType.PLATFORM_NAME))
+        ).findFirst().orElseThrow();
 
         //待处理
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
-        return new PageHelper(driver, envConfig, platformName);
+        return new PageHelper(driver, envConfig, appPlatform);
     }
 
     /**

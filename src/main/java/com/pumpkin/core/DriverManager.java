@@ -54,7 +54,7 @@ public class DriverManager {
     public WebDriver getDriver(ICaseRunnable.EnvConfig envConfig) {
         WebDriver driver = null;
         String platformName = envConfig.getEnv().getPlatform();
-        Platform platform = getPlatform(envConfig);
+        IPlatform.Platform platform = getPlatform(envConfig);
         switch (platform) {
             case APP:
                 String targetApp = envConfig.getEnv().getTargetApp();
@@ -115,7 +115,7 @@ public class DriverManager {
      */
     public void removeDriver(ICaseRunnable.EnvConfig envConfig) {
         String platformName = envConfig.getEnv().getPlatform();
-        Platform platform = getPlatform(envConfig);
+        IPlatform.Platform platform = getPlatform(envConfig);
         String key = null;
         switch (platform) {
             case APP:
@@ -143,9 +143,9 @@ public class DriverManager {
      * @param envConfig
      * @return
      */
-    private Platform getPlatform(ICaseRunnable.EnvConfig envConfig) {
+    private IPlatform.Platform getPlatform(ICaseRunnable.EnvConfig envConfig) {
         String platformName = envConfig.getEnv().getPlatform();
-        return Arrays.stream(Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().
+        return Arrays.stream(IPlatform.Platform.values()).filter(p -> p.isAlias(platformName)).findFirst().
                 orElseThrow(() -> new NotMatchPlatformException(envConfig.toString()));
     }
 }

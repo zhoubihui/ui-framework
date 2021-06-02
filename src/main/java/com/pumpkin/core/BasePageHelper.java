@@ -29,16 +29,16 @@ public class BasePageHelper {
     protected WebDriver driver;
     @Getter
     protected ICaseRunnable.EnvConfig envConfig;
-    protected String platformName;
+    protected IPlatform.AppPlatform appPlatform;
 
     /**
      * 1、每个case文件运行时都需要初始化PageHelper对象，同时根据环境配置初始化WebDriver
      * 2、BasePageHelper对象保存着WebDriver对象，后续的操作都是使用这个WebDriver
      */
-    protected BasePageHelper(WebDriver driver, ICaseRunnable.EnvConfig envConfig, String platformName) {
+    protected BasePageHelper(WebDriver driver, ICaseRunnable.EnvConfig envConfig, IPlatform.AppPlatform appPlatform) {
         this.driver = driver;
         this.envConfig = envConfig;
-        this.platformName = platformName;
+        this.appPlatform = appPlatform;
     }
 
     private final static Method SEND_KEYS;
@@ -160,7 +160,7 @@ public class BasePageHelper {
      *  getAttribute:
      */
     public Object runCase(String pageFileName, ICaseRunnable.ElementStructure poStep, Map<String, Object> poTrueData) {
-        ICaseRunnable.ElementSelector elementSelector = poStep.getSelectors().get(platformName);
+        ICaseRunnable.ElementSelector elementSelector = poStep.getSelectors().get(appPlatform.getAlias());
         String action = poStep.getAction();
         List<String> data = poStep.getData();
 
@@ -199,14 +199,27 @@ public class BasePageHelper {
     }
 
     /**
-     * 根据反射生成定位符对象
+     * 根据反射生成定位符对象,如果符合以下条件，则转成UiSelector的方式定位
+     * 1) enabledTransformXpath=true
+     * 2) appPlatform=ANDROID
+     * 3) strategy=xpath,且selector是支持的xpath表达式
      * @param strategy
      * @param selector
      * @return
      */
     private By findBy(String strategy, String selector) {
+
         PageBy pageBy = Arrays.stream(PageBy.values()).filter(by -> by.alias.equalsIgnoreCase(strategy)).findFirst().
                 orElse(PageBy.ID);
+        if (appPlatform == IPlatform.AppPlatform.ANDROID &&
+                envConfig.getConfig().isEnabledTransformXpath() &&
+                pageBy == PageBy.XPATH) {
+            String uiSelector = UiSelectorHelper.transformUiSelector(PageBy.XPATH.uiSelectorAlias, selector);
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(uiSelector)) {
+                selector = uiSelector;
+                pageBy = PageBy.UIAUTOMATOR;
+            }
+        }
         return (By) invokeMethod(pageBy.method, null, selector);
     }
 
@@ -254,11 +267,11 @@ public class BasePageHelper {
      */
     protected boolean swipeTo0(By by) {
         boolean isScroll = false;
-        switch (platformName.toUpperCase()) {
-            case "ANDROID":
+        switch (appPlatform) {
+            case ANDROID:
                 isScroll = swipeAndroid0(by);
                 break;
-            case "IOS":
+            case iOS:
                 isScroll = swipeIOS0(by);
                 break;
         }
@@ -273,7 +286,8 @@ public class BasePageHelper {
         String uiSelector = null;
         //获取具体的元素定位方法,拼接到滑动语法中
         if (by.getClass() == MobileBy.ByAndroidUIAutomator.class) {
-            //todo 如果原本就是UiSelector的语法
+            //如果原本就是UiSelector的语法，那么直接获取定位符
+            uiSelector = StringUtils.split(by.toString(), ":\\s{1}")[1];
         } else {
             //app中的id是带包名，by.toString()的格式是：ById：com.tencent.wework:id/h8q，所以切割时需要加正则切割
             uiSelector = UiSelectorHelper.transformUiSelector(getInnerClassName(by.getClass()),
@@ -362,16 +376,18 @@ public class BasePageHelper {
      * 3、记录定位方式的参数类型（其实不写也可以）
      */
     private enum PageBy {
-        ID(FIND_ID, "id"),
-        XPATH(FIND_XPATH, "xpath"),
-        AID(FIND_AID,"aid"),
-        UIAUTOMATOR(FIND_UIAUTOMATOR, "uiautomator"),
+        ID(FIND_ID, "id", "ById"),
+        XPATH(FIND_XPATH, "xpath", "ByXPath"),
+        AID(FIND_AID,"aid", "ByAccessibilityId"),
+        UIAUTOMATOR(FIND_UIAUTOMATOR, "uiautomator", "ByAndroidUIAutomator"),
         ;
         private final Method method;
         private final String alias;
-        PageBy(Method method, String alias) {
+        private final String uiSelectorAlias;
+        PageBy(Method method, String alias, String uiSelectorAlias) {
             this.method = method;
             this.alias = alias;
+            this.uiSelectorAlias = uiSelectorAlias;
         }
     }
 

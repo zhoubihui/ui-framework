@@ -11,11 +11,10 @@ cases:
   - search:
       params:
         - keyword
-        - replace
         - expected
       steps:
         - ${message-page.to-search}
-        - ${search-page.search(${keyword},${replace})}
+        - ${search-page.search(${keyword})}
       asserts:
         - type: contains # 类型需要有个对照enum
           expected: ${expected}

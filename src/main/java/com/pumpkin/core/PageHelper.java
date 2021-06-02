@@ -16,8 +16,8 @@ import java.util.List;
  **/
 public class PageHelper extends BasePageHelper {
 
-    public PageHelper(WebDriver driver, ICaseRunnable.EnvConfig envConfig, String platformName) {
-        super(driver, envConfig, platformName);
+    public PageHelper(WebDriver driver, ICaseRunnable.EnvConfig envConfig, IPlatform.AppPlatform appPlatform) {
+        super(driver, envConfig, appPlatform);
     }
 
     /**

@@ -240,7 +240,7 @@ public class UiSelectorHelper {
         return UI_SELECTOR + UiSelector.DESCRIPTION.getName() + "(\"" + selector + "\")";
     }
 
-    enum UiSelector {
+    private enum UiSelector {
         DESCRIPTION("description", "content-desc"),
         DESCRIPTION_CONTAINS("descriptionContains", "content-desc-contains"),
         RESOURCE_ID("resourceId", "resource-id"),
