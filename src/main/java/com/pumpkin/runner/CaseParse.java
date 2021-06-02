@@ -113,6 +113,7 @@ public class CaseParse {
         List<String> params = caseMethodModel.getParams();
         List<String> caseSteps = caseMethodModel.getSteps();
         List<ICase.CaseAssertModel> asserts = caseMethodModel.getAsserts();
+        boolean isHasAssert = Objects.nonNull(asserts);
         /**
          * 1、获取steps中引用的全部参数
          * 2、获取asserts中的expected引用的全部参数
@@ -122,13 +123,15 @@ public class CaseParse {
          */
         Set<String> caseParams = caseSteps.stream().flatMap(caseStep -> splitMethodParam(caseStep).stream()).
                 collect(Collectors.toSet());
-        Set<String> assertParams = asserts.stream().map(a -> splitParam(a.getExpected())).collect(Collectors.toSet());
+        Set<String> assertParams = isHasAssert ? asserts.stream().map(a -> splitParam(a.getExpected())).
+                collect(Collectors.toSet()) : Collections.emptySet();
 
         List<ICaseRunnable.PageObjectStructure> pageObjectStructures = caseSteps.stream().
                 map(caseStep -> transformCaseStep(caseFileName, caseMethodName, configModel.getPageUrl(), caseStep)).
                 collect(Collectors.toList());
 
-        List<ICaseRunnable.Assert> assertList = asserts.stream().map(CaseParse::transformCaseAssert).collect(Collectors.toList());
+        List<ICaseRunnable.Assert> assertList = isHasAssert ? asserts.stream().map(CaseParse::transformCaseAssert).
+                collect(Collectors.toList()) : Collections.emptyList();
 
         CaseInsensitiveMap<String, Object> caseTrueData = new CaseInsensitiveMap<>();
         caseParams.forEach(p -> caseTrueData.put(p, PRESENT));
@@ -249,8 +252,13 @@ public class CaseParse {
      * @return
      */
     private static List<ICaseRunnable.CaseMethod> replaceCaseParam(String caseFileName, String dataUrl, ICaseRunnable.CaseMethod caseMethod) {
-        String dataFileName = findDataFileName(dataUrl, caseFileName);
         List<ICaseRunnable.CaseMethod> caseMethods = new ArrayList<>();
+        if (Objects.isNull(caseMethod.getParams())) {
+            //参数为空的话，说明不需要生成多个测试用例
+            caseMethods.add(caseMethod);
+            return caseMethods;
+        }
+        String dataFileName = findDataFileName(dataUrl, caseFileName);
         /**
          * 先从缓存DataCache中找，找不到再读取文件
          */
@@ -358,6 +366,8 @@ public class CaseParse {
     private static void verifyCaseMethodAssertsParams(String caseFileName, String caseMethodName,
                                                       List<String> params,
                                                       List<ICase.CaseAssertModel> asserts) {
+        if (Objects.isNull(asserts))
+            return;
         if (!isTrueCaseMethodAssertsParams(params, asserts))
             ExceptionUtils.throwAsUncheckedException(
                     new NotMatchParameterException(caseFileName, caseMethodName)
@@ -411,6 +421,10 @@ public class CaseParse {
         return caseSteps.stream().allMatch(
                 s -> {
                     List<String> methodParam = splitMethodParam(s);
+                    if (methodParam.isEmpty())
+                        return true;
+                    if (Objects.isNull(params))
+                        return false;
                     return params.containsAll(methodParam);
                 }
         );
@@ -426,6 +440,10 @@ public class CaseParse {
         return asserts.stream().allMatch(
                 a -> {
                     String param = splitParam(a.getExpected());
+                    if (org.apache.commons.lang3.StringUtils.isBlank(param))
+                        return true;
+                    if (Objects.isNull(params))
+                        return false;
                     return params.contains(param);
                 }
         );
@@ -443,6 +461,8 @@ public class CaseParse {
                     if (Objects.isNull(e.getData()))
                         return true;
                     List<String> dataList = e.getData().stream().map(CaseParse::splitParam).collect(Collectors.toList());
+                    if (Objects.isNull(params))
+                        return false;
                     return params.containsAll(dataList);
                 }
         );

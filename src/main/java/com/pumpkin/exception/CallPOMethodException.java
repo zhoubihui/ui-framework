@@ -9,6 +9,6 @@ package com.pumpkin.exception;
  **/
 public class CallPOMethodException extends RuntimeException {
     public CallPOMethodException(String caseFileName, String caseName, String poFileName, String poMethod) {
-        super(String.format("%s的%s测试方法调用%s的%sPO方法，实参和形参个数不对"));
+        super(String.format("%s的%s测试方法调用%s的%sPO方法，实参和形参个数不对", caseFileName, caseName, poFileName, poMethod));
     }
 }

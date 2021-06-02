@@ -1,6 +1,6 @@
 package com.pumpkin.core;
 
-import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.TypeReference;
 import com.pumpkin.exception.NotMatchActionException;
 import com.pumpkin.runner.ICaseRunnable;
 import com.pumpkin.utils.ConvertUtils;
@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.pumpkin.utils.ReflectUtils.*;
 
@@ -82,6 +83,8 @@ public class BasePageHelper {
                 );
     }
 
+    private final static TypeReference<List<WebElement>> LIST_WEB_ELEMENTS = new TypeReference<>() {};
+
     /**
      * 查找元素的最底层封装
      * @param by
@@ -138,7 +141,7 @@ public class BasePageHelper {
     }
 
     private void setTimeOut0(long time, TimeUnit unit) {
-
+        driver.manage().timeouts().implicitlyWait(time, unit);
     }
 
     /**
@@ -165,9 +168,9 @@ public class BasePageHelper {
         int index = elementSelector.getIndex();
 
         By by = findBy(elementSelector.getStrategy(), elementSelector.getSelector());
-        List<WebElement> elements = findElements(by, multiple, index);
-        proxyHandleException(FIND_ELEMENTS, by, multiple, index);
-        return operateElement(pageFileName, elements, action, data, poTrueData, multiple, index);
+        List<WebElement> elements = ConvertUtils.convert(proxyHandleException(FIND_ELEMENTS, by, multiple, index),
+                LIST_WEB_ELEMENTS);
+        return proxyHandleException(OPERATE_ELEMENT, pageFileName, elements, action, data, poTrueData, multiple, index);
     }
 
     /**
@@ -304,7 +307,10 @@ public class BasePageHelper {
     private boolean handleException() {
         setTimeOut0(0, TimeUnit.SECONDS);
         List<String> blackList = envConfig.getConfig().getBlackList();
-        boolean isHandle = blackList.stream().anyMatch(
+        if (Objects.isNull(blackList))
+            return false;
+        //之前的写法是anyMatch，发现只要有一个为true之后就不再执行后续弹窗，所以这里改成map
+        Stream<Boolean> isHandles =  blackList.stream().map(
                 b -> {
                     String[] temp = splitBlackListSelector(b);
                     By by = findBy(temp[0], temp[1]);
@@ -317,7 +323,7 @@ public class BasePageHelper {
                 }
         );
         setTimeOut0(10, TimeUnit.SECONDS);
-        return isHandle;
+        return isHandles.anyMatch(h -> h);
     }
 
     /**
@@ -331,7 +337,7 @@ public class BasePageHelper {
             return invokeMethod(method, this, args);
         } catch (TimeoutException |
                 StaleElementReferenceException |
-                ArrayIndexOutOfBoundsException |
+                IndexOutOfBoundsException |
                 NoSuchElementException e) {
             if (envConfig.getConfig().isEnableHandleException() && handleException()) {
                 return invokeMethod(method, this, args);
@@ -388,6 +394,4 @@ public class BasePageHelper {
             this.method = method;
         }
     }
-
-
 }

@@ -23,7 +23,7 @@ app:
         noReset: true
     xueqiu:
       config:
-        blackList: [(id,tb_agree),(id,ib_close)]
+        blackList: ["(id,com.xueqiu.android:id/tv_agree)","(id,com.xueqiu.android:id/ib_close)"]
         enabledMethodLog: true
       caps:
         appPackage: com.xueqiu.android
