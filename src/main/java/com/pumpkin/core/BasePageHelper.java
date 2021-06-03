@@ -26,6 +26,8 @@ import static com.pumpkin.utils.ReflectUtils.*;
  * @version: 1.0
  **/
 public class BasePageHelper {
+    private final static String RESET_TIME = "0";
+
     protected WebDriver driver;
     @Getter
     protected ICaseRunnable.EnvConfig envConfig;
@@ -39,6 +41,7 @@ public class BasePageHelper {
         this.driver = driver;
         this.envConfig = envConfig;
         this.appPlatform = appPlatform;
+        setTimeOut0(envConfig.getConfig().getWait());
     }
 
     private final static Method SEND_KEYS;
@@ -140,8 +143,21 @@ public class BasePageHelper {
         return element.getAttribute(name);
     }
 
-    private void setTimeOut0(long time, TimeUnit unit) {
-        driver.manage().timeouts().implicitlyWait(time, unit);
+    /**
+     * 设置隐式等待时间,目前只支持分和秒,输入格式10s表示隐式等待10秒,不输入单位时默认为s
+     * @param wait
+     */
+    private void setTimeOut0(String wait) {
+        if (Objects.isNull(wait) || org.apache.commons.lang3.StringUtils.isBlank(wait))
+            return;
+        List<String> temp = StringUtils.matchers(wait, PageWait.REGEX);
+        if (temp.isEmpty())
+            return;
+        long time = Long.parseLong(temp.get(0));
+        String unit = temp.size() != 2 ? "s" : temp.get(1);
+        PageWait pageWait = Arrays.stream(PageWait.values()).filter(w -> w.isAlias(unit)).findFirst().
+                orElse(PageWait.SECOND);
+        driver.manage().timeouts().implicitlyWait(time, pageWait.getUnit());
     }
 
     /**
@@ -322,7 +338,7 @@ public class BasePageHelper {
         List<String> blackList = envConfig.getConfig().getBlackList();
         if (Objects.isNull(blackList))
             return false;
-        setTimeOut0(0, TimeUnit.SECONDS);
+        setTimeOut0(RESET_TIME);
         //之前的写法是anyMatch，发现只要有一个为true之后就不再执行后续弹窗，所以这里改成map
         Stream<Boolean> isHandles =  blackList.stream().map(
                 b -> {
@@ -336,7 +352,7 @@ public class BasePageHelper {
                     return false;
                 }
         );
-        setTimeOut0(10, TimeUnit.SECONDS);
+        setTimeOut0(envConfig.getConfig().getWait());
         return isHandles.anyMatch(b -> b);
     }
 
@@ -408,6 +424,25 @@ public class BasePageHelper {
         PageOperate(Method method, String alias) {
             this.alias = alias;
             this.method = method;
+        }
+    }
+
+    private enum PageWait {
+        SECOND(TimeUnit.SECONDS, "s"),
+        MINUTE(TimeUnit.MINUTES, "m"),
+        ;
+        private final TimeUnit unit;
+        private final String alias;
+        private final static String REGEX = "(\\d+)([ms]{1})";
+        PageWait(TimeUnit unit, String alias) {
+            this.unit = unit;
+            this.alias = alias;
+        }
+        public boolean isAlias(String alias) {
+            return alias.equalsIgnoreCase(alias);
+        }
+        public TimeUnit getUnit() {
+            return this.unit;
         }
     }
 }

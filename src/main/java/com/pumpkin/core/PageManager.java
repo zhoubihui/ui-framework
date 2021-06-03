@@ -41,10 +41,6 @@ public class PageManager {
         IPlatform.AppPlatform appPlatform = Arrays.stream(IPlatform.AppPlatform.values()).filter(
                 a -> a.isAlias(MapUtils.getString(envConfig.getCaps(), MobileCapabilityType.PLATFORM_NAME))
         ).findFirst().orElseThrow();
-
-        //待处理
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-
         return new PageHelper(driver, envConfig, appPlatform);
     }
 

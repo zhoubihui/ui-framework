@@ -38,7 +38,8 @@ class StringUtilsTest {
 
     static Stream<Arguments> matchersData() {
         return Stream.of(
-                Arguments.of("${keyword}, ${replace}", "\\{(.+?)\\}.+\\{(.+?)\\}")
+                Arguments.of("${keyword}, ${replace}", "\\{(.+?)\\}.+\\{(.+?)\\}"),
+                Arguments.of("123456778934s", "(\\d+)([ms]{1})")
         );
     }
 }

@@ -65,5 +65,6 @@ public interface IConfig {
         private Boolean enabledMethodLog;
         private Boolean enableHandleException;
         private List<String> blackList;
+        private String wait;
     }
 }

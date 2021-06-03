@@ -198,5 +198,6 @@ public interface ICaseRunnable {
         private boolean enabledMethodLog;
         private boolean enableHandleException;
         private List<String> blackList;
+        private String wait;
     }
 }

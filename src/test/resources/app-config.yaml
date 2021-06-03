@@ -7,6 +7,7 @@ base: # app的基本设置
     enableHandleException: true # 开启后，查找不到元素时会做通用异常处理
     enabledReplace: true # 开启后，sendKeys前会先清空输入框
     enabledMethodLog: false # 开启后，进入每个方法时都会打印具体的方法名和方法参数
+    wait: 10 # second,Minute,比如写的是10s，那么就是10秒的意思
   caps: # 具体app的caps覆盖全局的caps
     noReset: false
     unicodeKeyboard: true
